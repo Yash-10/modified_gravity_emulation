@@ -78,18 +78,12 @@ def get_params(opt, size):
 
     return {'crop_pos': (x, y), 'flip': flip}
 
-def customNormalize(arr):
-    ''' Function to scale an input array to [-1, 1] '''
-    arr_min = arr.min()
-    arr_max = arr.max()
-    # Check the original min and max values
-    # print('Min: %.3f, Max: %.3f' % (arr_min, arr_max))
-    arr_range = arr_max - arr_min
-    scaled = ((arr-arr_min) / float(arr_range)).to(torch.float32)
-    arr_new = -1 + (scaled * 2)
-    # Make sure min value is -1 and max value is 1
-    # print('Min: %.3f, Max: %.3f' % (arr_new.min(), arr_new.max()))
-    return arr_new
+############ Below function copied and pasted from https://github.com/nperraud/3DcosmoGAN/ ###########
+def andres_forward(x, shift=20., scale=1.):
+    """Map real positive numbers to a [-scale, scale] range.
+    Numpy version
+    """
+    return scale * (2 * (x / (x + 1 + shift)) - 1)
 
 class CustomPixelTransformation(object):
     def __call__(self, img):
@@ -98,9 +92,7 @@ class CustomPixelTransformation(object):
 
         :return: torch tensor -- transformed image
         """
-        logged = torch.log10(img)
-        normalized = customNormalize(logged)  # Normalizes logged image in range [-1, +1]
-        return normalized
+        return andres_forward(img, scale=1., shift=1)  # only keep changing `shift` during experimentation.
 
     def __repr__(self):
         return self.__class__.__name__+'()'
