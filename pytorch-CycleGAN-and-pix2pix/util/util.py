@@ -5,19 +5,16 @@ import numpy as np
 from PIL import Image
 import os
 import torch
+from data.base_dataset import andres_forward
 
-def untransform(img, arr_min, arr_max):
+def andres_backward(y, shift=20., scale=1., real_max=1e8):
+    """Inverse of the function forward map.
+    Numpy version
     """
-    arr_max and arr_min are max and min values of the original image before customNormalized but after log10 transform.
-    """
-    # First unnormalize
-    scaled = (img + 1) / 2
-    scaled = scaled.astype('f')
-    arr_range = arr_max - arr_min
-    arr = scaled * float(arr_range) + arr_min
-    # Then unlog
-    unlogged = 10 ** arr
-    return unlogged
+    simple_max = andres_forward(real_max, shift, scale)
+    simple_min = andres_forward(0, shift, scale)
+    y_clipped = np.clip(y, simple_min, simple_max) / scale
+    return (shift + 1) * (y_clipped + 1) / (1 - y_clipped)
 
 def tensor2im(input_image, imtype=np.float32):
     """"Converts a Tensor array into a numpy image array.
@@ -34,8 +31,7 @@ def tensor2im(input_image, imtype=np.float32):
         image_numpy = image_tensor[0].cpu().float().numpy()  # convert it into a numpy array
     else:  # if it is a numpy array, do nothing
         image_numpy = input_image
-    # image_numpy = untransform(image_numpy)
-    ### TODO: Currently, we cannot do untransform since we do not have a way to store original min and max values, so unnormalization cannot be done.
+    image_numpy = andres_backward(image_numpy)
     return image_numpy.astype(imtype)
 
 
