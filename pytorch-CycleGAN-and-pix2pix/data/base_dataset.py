@@ -97,10 +97,8 @@ class CustomPixelTransformation(object):
     def __repr__(self):
         return self.__class__.__name__+'()'
 
-def get_transform(opt, params=None, grayscale=False, method=transforms.InterpolationMode.BICUBIC, convert=True):
+def get_transform(opt, params=None, grayscale=False, method=transforms.InterpolationMode.BICUBIC, convert=False):
     transform_list = []
-
-    transform_list.append(CustomPixelTransformation())
 
     if grayscale:
         transform_list.append(transforms.Grayscale(1))
@@ -124,6 +122,8 @@ def get_transform(opt, params=None, grayscale=False, method=transforms.Interpola
             transform_list.append(transforms.RandomHorizontalFlip())
         elif params['flip']:
             transform_list.append(transforms.Lambda(lambda img: __flip(img, params['flip'])))
+
+    transform_list.append(CustomPixelTransformation())  # To normalize the image.
 
     if convert:
         transform_list += [transforms.ToTensor()]
