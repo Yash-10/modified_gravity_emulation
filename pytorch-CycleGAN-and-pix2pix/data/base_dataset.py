@@ -90,7 +90,7 @@ class CustomPixelTransformation(object):
         """
         :param img: torch tensor
 
-        :return: torch tensor -- transformed image
+        :return: torch tensor - transformed image
         """
         return andres_forward(img, scale=1., shift=1)  # only keep changing `shift` during experimentation.
 
@@ -99,6 +99,9 @@ class CustomPixelTransformation(object):
 
 def get_transform(opt, params=None, grayscale=False, method=transforms.InterpolationMode.BICUBIC, convert=False):
     transform_list = []
+
+    # It is important to keep the custom pixel transformation first than keeping it at the end, else we meet with failure mode (D_fake = 0 or D_real = 0).
+    transform_list.append(CustomPixelTransformation())  # To normalize the image.
 
     if grayscale:
         transform_list.append(transforms.Grayscale(1))
@@ -122,8 +125,6 @@ def get_transform(opt, params=None, grayscale=False, method=transforms.Interpola
             transform_list.append(transforms.RandomHorizontalFlip())
         elif params['flip']:
             transform_list.append(transforms.Lambda(lambda img: __flip(img, params['flip'])))
-
-    transform_list.append(CustomPixelTransformation())  # To normalize the image.
 
     if convert:
         transform_list += [transforms.ToTensor()]
