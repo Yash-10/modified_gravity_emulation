@@ -2,7 +2,6 @@
 from __future__ import print_function
 import torch
 import numpy as np
-from PIL import Image
 import os
 import torch
 from data.base_dataset import andres_forward
@@ -31,7 +30,8 @@ def tensor2im(input_image, imtype=np.float32):
         image_numpy = image_tensor[0].cpu().float().numpy()  # convert it into a numpy array
     else:  # if it is a numpy array, do nothing
         image_numpy = input_image
-    image_numpy = andres_backward(image_numpy)
+    # scale and shift values must match those used in `andres_forward`.
+    image_numpy = andres_backward(image_numpy, scale=1., shift=1., real_max=1.5e4)  # In the original images, max value is always less than 1.5e4.
     return image_numpy.astype(imtype)
 
 
