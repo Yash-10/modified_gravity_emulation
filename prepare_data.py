@@ -37,13 +37,13 @@ if __name__ == "__main__":
         shutil.rmtree(os.path.join(BASE_PATH, 'f4'))
  
     os.mkdir(os.path.join(BASE_PATH, 'gr'))
-    os.mkdir(os.path.join(BASE_PATH, 'f4'))
+    os.mkdir(os.path.join(BASE_PATH, 'fr'))
     os.mkdir(os.path.join(BASE_PATH, 'gr', 'train'))
     os.mkdir(os.path.join(BASE_PATH, 'gr', 'val'))
     os.mkdir(os.path.join(BASE_PATH, 'gr', 'test'))
-    os.mkdir(os.path.join(BASE_PATH, 'f4', 'train'))
-    os.mkdir(os.path.join(BASE_PATH, 'f4', 'val'))
-    os.mkdir(os.path.join(BASE_PATH, 'f4', 'test'))
+    os.mkdir(os.path.join(BASE_PATH, 'fr', 'train'))
+    os.mkdir(os.path.join(BASE_PATH, 'fr', 'val'))
+    os.mkdir(os.path.join(BASE_PATH, 'fr', 'test'))
 
     Ng = 512  # Grid size.
     assert len(glob.glob(f'{BASE_PATH}/example_GR_*_*den.npy.gz')) == len(glob.glob(f'{BASE_PATH}/example_F4n1_*_*den.npy.gz'))
