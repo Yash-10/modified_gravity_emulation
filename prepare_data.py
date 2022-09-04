@@ -77,10 +77,10 @@ if __name__ == "__main__":
         for i in range(0, Ng):
             if counter in train_indices:
                 np.save(os.path.join(BASE_PATH, 'gr', 'train', f'{run}_{counter}.npy'), gr[:, :, i])
-                np.save(os.path.join(BASE_PATH, 'fr', 'train', f'{counter}.npy'), fr[:, :, i])
+                np.save(os.path.join(BASE_PATH, 'fr', 'train', f'{run}_{counter}.npy'), fr[:, :, i])
             elif counter in val_indices:
                 np.save(os.path.join(BASE_PATH, 'gr', 'val', f'{run}_{counter}.npy'), gr[:, :, i])
-                np.save(os.path.join(BASE_PATH, 'fr', 'val', f'{counter}.npy'), fr[:, :, i])
+                np.save(os.path.join(BASE_PATH, 'fr', 'val', f'{run}_{counter}.npy'), fr[:, :, i])
             elif counter in test_indices:
                 np.save(os.path.join(BASE_PATH, 'gr', 'test', f'{run}_{counter}.npy'), gr[:, :, i])
                 np.save(os.path.join(BASE_PATH, 'fr', 'test', f'{run}_{counter}.npy'), fr[:, :, i])
