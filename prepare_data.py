@@ -15,7 +15,6 @@ def get_slice(arr_3d, i):
     _l = arr_3d[i].split('/')[2]
     a = gzip.GzipFile(_l.split('gz')[0]+'gz', 'r')
     gr_3d = np.load(a)
-    print(_l)
     if _l[6] == 'z':
         arr_slice = gr_3d[:, :, int(_l.split('_')[7])]
     elif _l[1] == 'y':
