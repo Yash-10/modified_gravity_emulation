@@ -124,6 +124,18 @@ def mean_density(img):
     """
     return img.mean()
 
+##### Median density #####
+def median_density(img):
+    """Calculates median density of a 2D slice.
+
+    Args:
+        img (numpy.ndarray): 2D density slice.
+
+    Returns:
+        float: Median density.
+    """
+    return np.median(img)
+
 ##### Correlation coefficient #####
 def correlation_coefficient(delta1, delta2):
     """Calculates the cross-correlation coefficient which is a form of normalized cross-power spectrum.
