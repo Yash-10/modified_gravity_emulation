@@ -1,4 +1,5 @@
 import os
+import shutil
 import glob
 import numpy as np
 import gzip
@@ -16,6 +17,11 @@ if __name__ == "__main__":
 
     BASE_PATH = '/content'
 
+    if os.path.exists(os.path.join(BASE_PATH, 'gr')):
+        shutil.rmtree(os.path.join(BASE_PATH, 'gr'))
+    if os.path.exists(os.path.join(BASE_PATH, 'f4')):
+        shutil.rmtree(os.path.join(BASE_PATH, 'f4'))
+ 
     os.mkdir(os.path.join(BASE_PATH, 'gr'))
     os.mkdir(os.path.join(BASE_PATH, 'f4'))
     os.mkdir(os.path.join(BASE_PATH, 'gr', 'train'))
@@ -34,10 +40,10 @@ if __name__ == "__main__":
 
     counter = 0
     for run in ['Run1', 'Run2', 'Run62']:  # Assumes three runs with the given names are only present.
-        gr_npy_gz_file = f'{BASE_PATH}/example_GR_*{run}_*den.npy.gz'
+        gr_npy_gz_file = f'{BASE_PATH}/example_GR_L128Np256Ng512_{run}_0157_den.npy.gz'
         g = gzip.GzipFile(gr_npy_gz_file, 'r')
         gr = np.load(g)
-        fr_npy_gz_file = f'{BASE_PATH}/example_GR_*{run}_*den.npy.gz'
+        fr_npy_gz_file = f'{BASE_PATH}/example_F4n1_L128Np256Ng512_{run}_0157_den.npy.gz'
         f = gzip.GzipFile(fr_npy_gz_file, 'r')
         fr = np.load(f)
 
