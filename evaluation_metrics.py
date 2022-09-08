@@ -103,8 +103,8 @@ def mssim(gen_imgs, gt_imgs):
     Returns:
         float: The MS-SSIM value.
     """
-    _gen_imgs = torch.from_numpy(gen_imgs.unsqueeze(1))
-    _gt_imgs = torch.from_numpy(gt_imgs.unsqueeze(1))
+    _gen_imgs = torch.from_numpy(np.expand_dims(gen_imgs, axis=1))
+    _gt_imgs = torch.from_numpy(np.expand_dims(gt_imgs, axis=1))
     # TODO: Ensure shape is as expected.
     msssim_val = multiscale_structural_similarity_index_measure(
         _gen_imgs, _gt_imgs,  # Add a dimension for channel to match with torchmetrics expected input.
