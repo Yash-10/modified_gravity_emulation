@@ -32,7 +32,7 @@ def ps_2d(delta):
     return k2, Pk2
 
 ##### Pixel wasserstein distance #####
-# Code taken from https://github.com/nperraud/3DcosmoGAN (Publication: https://arxiv.org/pdf/1908.05519.pdf)
+# Code taken from https://renkulab.io/gitlab/nathanael.perraudin/darkmattergan/-/blob/master/cosmotools/metric/evaluation.py
 def wasserstein_distance_norm(p, q):
     """Computes 1-Wasserstein distance between standardized p and q arrays.
     Notes
@@ -54,7 +54,7 @@ def wasserstein_distance_norm(p, q):
     return wasserstein_distance(p_norm, q_norm)
 
 ##### Peak count wasserstein distance #####
-# Code taken from https://github.com/nperraud/3DcosmoGAN (Publication: https://arxiv.org/pdf/1908.05519.pdf)
+# Code taken from https://renkulab.io/gitlab/nathanael.perraudin/darkmattergan/-/blob/master/cosmotools/metric/evaluation.py
 def peak_count(X, neighborhood_size=5, threshold=0.5):
     """
     Peak cound for a 2D or a 3D square image
