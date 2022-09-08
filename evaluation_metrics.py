@@ -66,7 +66,7 @@ def peak_count(X, neighborhood_size=5, threshold=0.5):
 
     How to use
     ----------
-    func_pc = partial(stats.peak_count, neighborhood_size=5, threshold=0)
+    func_pc = partial(peak_count, neighborhood_size=5, threshold=0)
     pcr = np.concatenate( [func_pc(im) for im in imr] )
     pcf = np.concatenate( [func_pc(im) for im in imf] )
     wass_peak = wasserstein_distance_norm(p=pcr, q=pcf)
