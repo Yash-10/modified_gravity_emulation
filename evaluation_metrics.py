@@ -137,7 +137,7 @@ def median_density(img):
     return np.median(img)
 
 ##### Correlation coefficient #####
-def correlation_coefficient(delta1, delta2):
+def correlation_coefficient(delta1, delta2, BoxSize=128):
     """Calculates the cross-correlation coefficient which is a form of normalized cross-power spectrum.
     See equation 6 in https://www.pnas.org/doi/pdf/10.1073/pnas.1821458116 for more details.
     See the corresponding line in Pylians3 source code: `self.r  = self.XPk/np.sqrt(self.Pk[:,0]*self.Pk[:,1])` (https://github.com/franciscovillaescusa/Pylians3/blob/21a33736785ca84dd89a5ac2f73f7b43e981f53d/library/Pk_library/Pk_library.pyx#L1218)
@@ -150,7 +150,7 @@ def correlation_coefficient(delta1, delta2):
         float: Cross-correlation coefficient.
     """
     # compute cross-power spectrum between two images
-    XPk2D = PKL.XPk_plane(delta1, delta2, BoxSize, MAS1, MAS2, threads)
+    XPk2D = PKL.XPk_plane(delta1, delta2, BoxSize, MAS1='None', MAS2='None', threads=2)
 
     # get the attributes of the routine
     # k      = XPk2D.k        #k in h/Mpc
