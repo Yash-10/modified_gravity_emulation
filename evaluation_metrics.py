@@ -54,7 +54,7 @@ def wasserstein_distance_norm(p, q):
     return wasserstein_distance(p_norm, q_norm)
 
 ##### Peak count wasserstein distance #####
-# Code taken from https://renkulab.io/gitlab/nathanael.perraudin/darkmattergan/-/blob/master/cosmotools/metric/evaluation.py
+# Code taken from https://renkulab.io/gitlab/nathanael.perraudin/darkmattergan/-/blob/master/cosmotools/metric/stats.py
 def peak_count(X, neighborhood_size=5, threshold=0.5):
     """
     Peak cound for a 2D or a 3D square image
