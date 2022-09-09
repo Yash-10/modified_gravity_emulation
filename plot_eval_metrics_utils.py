@@ -1,3 +1,7 @@
+######################################################################################################################################
+###### The functions in this script have been taken from https://github.com/nperraud/gantools/blob/master/gantools/plot/plot.py ######
+######################################################################################################################################
+
 from matplotlib import pyplot as plt
 from matplotlib.colors import LogNorm
 import numpy as np
