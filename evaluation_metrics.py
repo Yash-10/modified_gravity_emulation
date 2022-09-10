@@ -1,5 +1,6 @@
 # Evaluation functions
 
+import gc
 from functools import partial
 import numpy as np
 
@@ -195,6 +196,9 @@ def driver(gens, ips, gts):
     print(f'Peak count distances:\n\tbetween input GR and generated f(R): {wass_peak_ip_gen}\n\tbetween ground_truth f(R) and generated f(R): {wass_peak_gt_gen}')
     # TODO: Plot?
 
+    del pc_gen, pc_ip, pc_gt, wass_peak_ip_gen, wass_peak_gt_gen
+    gc.collect()
+
     # 2. PIXEL DISTANCE
     wass_pixel_ip_gen = wasserstein_distance_norm(p=ips, q=gens)
     wass_pixel_gt_gen = wasserstein_distance_norm(p=gts, q=gens)
@@ -219,6 +223,9 @@ def driver(gens, ips, gts):
     plot_density(mean_den_gen, mean_den_ip, mean_den_gt)
     # TODO: Also plot fractional difference below this plot.
 
+    del mean_den_gen, mean_den_ip, mean_den_gt
+    gc.collect()
+
     # Median density
     median_den_gen = np.array([median_density(im) for im in gens])
     median_den_ip = np.array([median_density(im) for im in ips])
@@ -229,6 +236,9 @@ def driver(gens, ips, gts):
 
     plot_density(median_den_gen, median_den_ip, median_den_gt)
     # TODO: Also plot fractional difference below this plot.
+
+    del median_den_gen, median_den_ip, median_den_gt
+    gc.collect()
 
     # Correlation coefficient: It is a function of `k`, the wavenumber.
     corr_gen_ip = np.vstack([correlation_coefficient(im_gen, im_ip) for im_gen, im_ip in zip(gens, ips)])
@@ -241,3 +251,6 @@ def driver(gens, ips, gts):
     ax = sns.heatmap(corr_gen_gt, linewidth=0.5, vmin=0., vmax=1.)
     ax.set_title('Correlation coefficient: cGAN-generated f(R) vs Simulation f(R)')
     plt.show()
+
+    del corr_gen_ip, corr_gen_gt
+    gc.collect()
