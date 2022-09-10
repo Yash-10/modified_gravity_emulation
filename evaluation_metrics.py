@@ -11,27 +11,27 @@ import scipy.ndimage.filters as filters
 import torch
 from torchmetrics.functional import multiscale_structural_similarity_index_measure
 
-##### Power spectrum ####
-def ps_2d(delta):
+# Power spectrum
+def ps_2d(delta, BoxSize=128):
     """Calculates the 2D power spectrum of a density field.
 
     Args:
         delta (numpy.ndarray): Density slice.
+        BoxSize (float): Simulation box size.
 
     Returns:
         (numpy.ndarray, numpy.ndarray): The wavenumbers and power spectrum amplitudes.
     """
-    BoxSize = 128
     MAS = 'None'
     threads = 2
     Pk2D2 = PKL.Pk_plane(delta, BoxSize, MAS, threads)
     # get the attributes of the routine
     k2      = Pk2D2.k      #k in h/Mpc
     Pk2     = Pk2D2.Pk     #Pk in (Mpc/h)^2
-    Nmodes = Pk2D2.Nmodes #Number of modes in the different k bins
+#     Nmodes = Pk2D2.Nmodes #Number of modes in the different k bins
     return k2, Pk2
 
-##### Pixel wasserstein distance #####
+# Wasserstein distance.
 # Code taken from https://renkulab.io/gitlab/nathanael.perraudin/darkmattergan/-/blob/master/cosmotools/metric/evaluation.py
 def wasserstein_distance_norm(p, q):
     """Computes 1-Wasserstein distance between standardized p and q arrays.
@@ -53,7 +53,7 @@ def wasserstein_distance_norm(p, q):
     q_norm = (q.flatten() - mu)/sig        
     return wasserstein_distance(p_norm, q_norm)
 
-##### Peak count wasserstein distance #####
+# Peak count.
 # Code taken from https://renkulab.io/gitlab/nathanael.perraudin/darkmattergan/-/blob/master/cosmotools/metric/stats.py
 def peak_count(X, neighborhood_size=5, threshold=0.5):
     """
@@ -92,7 +92,7 @@ def peak_count(X, neighborhood_size=5, threshold=0.5):
 
     return np.extract(maxima, X)
 
-##### MS-SSIM #####
+# MS-SSIM
 def mssim(gen_imgs, gt_imgs):
     """Calculates the MS-SSIM between two sets of images.
 
@@ -112,7 +112,7 @@ def mssim(gen_imgs, gt_imgs):
     ).item()
     return msssim_val
 
-##### Mean density #####
+# Mean density.
 def mean_density(img):
     """Calculates mean density of a 2D slice.
 
@@ -124,7 +124,7 @@ def mean_density(img):
     """
     return img.mean()
 
-##### Median density #####
+# Median density.
 def median_density(img):
     """Calculates median density of a 2D slice.
 
@@ -136,7 +136,7 @@ def median_density(img):
     """
     return np.median(img)
 
-##### Correlation coefficient #####
+## Cross-correlation coefficient
 def correlation_coefficient(delta1, delta2, BoxSize=128):
     """Calculates the cross-correlation coefficient which is a form of normalized cross-power spectrum.
     See equation 6 in https://www.pnas.org/doi/pdf/10.1073/pnas.1821458116 for more details.
@@ -145,6 +145,7 @@ def correlation_coefficient(delta1, delta2, BoxSize=128):
     Args:
         delta1 (numpy.ndarray): generated (or predicted) 2D density slice.
         delta2 (numpy.ndarray): ground-truth 2D density slice.
+        BoxSize (float): Simulation box size.
 
     Returns:
         float: Cross-correlation coefficient.
