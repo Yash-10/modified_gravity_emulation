@@ -3,6 +3,11 @@
 from functools import partial
 import numpy as np
 
+# Plotting.
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+import seaborn as sns
+
 import Pk_library.Pk_library as PKL
 
 from scipy.stats import wasserstein_distance
@@ -163,22 +168,36 @@ def correlation_coefficient(delta1, delta2, BoxSize=128):
     # Nmodes = XPk2D.Nmodes   #number of modes in each k-bin
     return r
 
+def plot_density(den_gen, den_ip, den_gt):
+    plt.rcParams['figure.figsize'] = [8, 6]
+    fig, ax = plt.subplots()
+    sns.kdeplot(den_gen, ax=ax, color='red', shade=False)
+    sns.kdeplot(den_ip, ax=ax, color='blue', shade=False)
+    sns.kdeplot(den_gt, ax=ax, color='green', shade=False)
+    handles = [
+            mpatches.Patch(facecolor=plt.cm.Reds(100), label="cGAN generated"),
+            mpatches.Patch(facecolor=plt.cm.Blues(100), label="GR simulation"),
+            mpatches.Patch(facecolor=plt.cm.Greens(100), label="f(R) simulation")
+        ]
+    ax.legend(handles=handles)
+    plt.show()
+
 ##### Driver function for all evaluation metrics #####
 def driver(gens, ips, gts):
     ########################  Run evaluation metrics  ########################
     # 1. PEAK COUNTS
     func_pc = partial(peak_count, neighborhood_size=5, threshold=0.5)
-    pc_gen = np.concatenate( [func_pc(im) for im in val_gen] )
-    pc_ip = np.concatenate( [func_pc(im) for im in val_ip] )
-    pc_gt = np.concatenate( [func_pc(im) for im in val_gt] )
+    pc_gen = np.concatenate( [func_pc(im) for im in gens] )
+    pc_ip = np.concatenate( [func_pc(im) for im in ips] )
+    pc_gt = np.concatenate( [func_pc(im) for im in gts] )
     wass_peak_ip_gen = wasserstein_distance_norm(p=pc_ip, q=pc_gen)
     wass_peak_gt_gen = wasserstein_distance_norm(p=pc_gt, q=pc_gen)
     print(f'Peak count distances:\n\tbetween input GR and generated f(R): {wass_peak_ip_gen}\n\tbetween ground_truth f(R) and generated f(R): {wass_peak_gt_gen}')
     # TODO: Plot?
 
     # 2. PIXEL DISTANCE
-    wass_pixel_ip_gen = wasserstein_distance_norm(p=val_ip, q=val_gen)
-    wass_pixel_gt_gen = wasserstein_distance_norm(p=val_gt, q=val_gen)
+    wass_pixel_ip_gen = wasserstein_distance_norm(p=ips, q=gens)
+    wass_pixel_gt_gen = wasserstein_distance_norm(p=gts, q=gens)
     print(f'Pixel distances:\n\tbetween input GR and generated f(R): {wass_pixel_ip_gen}\n\tbetween ground_truth f(R) and generated f(R): {wass_pixel_gt_gen}')
     # TODO: Plot?
 
@@ -190,25 +209,33 @@ def driver(gens, ips, gts):
     # TODO: Plot?
 
     # Mean density
-    mean_den_gen = np.array([mean_density(im) for im in val_gen])
-    mean_den_ip = np.array([mean_density(im) for im in val_ip])
-    mean_den_gt = np.array([mean_density(im) for im in val_gt])
+    mean_den_gen = np.array([mean_density(im) for im in gens])
+    mean_den_ip = np.array([mean_density(im) for im in ips])
+    mean_den_gt = np.array([mean_density(im) for im in gts])
     wass_meanden_ip_gen = wasserstein_distance_norm(p=mean_den_ip, q=mean_den_gen)
     wass_meanden_gt_gen = wasserstein_distance_norm(p=mean_den_gt, q=mean_den_gen)
     print(f'Mean density distances:\n\tbetween input GR and generated f(R): {wass_meanden_ip_gen}\n\tbetween ground_truth f(R) and generated f(R): {wass_meanden_gt_gen}')
-    # TODO: Plot?
+
+    plot_density(mean_den_gen, mean_den_ip, mean_den_gt)
 
     # Median density
-    median_den_gen = np.array([median_density(im) for im in val_gen])
-    median_den_ip = np.array([median_density(im) for im in val_ip])
-    median_den_gt = np.array([median_density(im) for im in val_gt])
+    median_den_gen = np.array([median_density(im) for im in gens])
+    median_den_ip = np.array([median_density(im) for im in ips])
+    median_den_gt = np.array([median_density(im) for im in gts])
     wass_medianden_ip_gen = wasserstein_distance_norm(p=median_den_ip, q=median_den_gen)
     wass_medianden_gt_gen = wasserstein_distance_norm(p=median_den_gt, q=median_den_gen)
     print(f'Median density distances:\n\tbetween input GR and generated f(R): {wass_medianden_ip_gen}\n\tbetween ground_truth f(R) and generated f(R): {wass_medianden_gt_gen}')
-    # TODO: Plot?
+
+    plot_density(median_den_gen, median_den_ip, median_den_gt)
 
     # Correlation coefficient: It is a function of `k`, the wavenumber.
-    # TODO: Show correlation coeff plot alongside the power spectra plots.
-    corr_gen_ip = np.vstack([correlation_coefficient(im_gen, im_ip) for im_gen, im_ip in zip(val_gen, val_ip)])
-    corr_gen_gt = np.vstack([correlation_coefficient(im_gen, im_gt) for im_gen, im_gt in zip(val_gen, val_gt)])
-    # TODO: Plot?
+    corr_gen_ip = np.vstack([correlation_coefficient(im_gen, im_ip) for im_gen, im_ip in zip(gens, ips)])
+    corr_gen_gt = np.vstack([correlation_coefficient(im_gen, im_gt) for im_gen, im_gt in zip(gens, gts)])
+
+    ax = sns.heatmap(corr_gen_ip, linewidth=0.5, vmin=0., vmax=1.)
+    ax.set_title('Correlation coefficient: cGAN-generated f(R) vs Simulation GR')
+    plt.show()
+
+    ax = sns.heatmap(corr_gen_gt, linewidth=0.5, vmin=0., vmax=1.)
+    ax.set_title('Correlation coefficient: cGAN-generated f(R) vs Simulation f(R)')
+    plt.show()
