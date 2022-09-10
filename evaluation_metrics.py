@@ -160,6 +160,9 @@ def correlation_coefficient(delta1, delta2, BoxSize=128):
     # Nmodes = XPk2D.Nmodes   #number of modes in each k-bin
     return r, k
 
+def transfer_function(ps_pred, ps_true):
+    return np.sqrt(ps_pred/ps_true)
+
 def plot_mat(corr_mat, k, title=None):
     from mpl_toolkits.axes_grid1 import make_axes_locatable
     plt.rcParams['figure.figsize'] = [20, 8]
@@ -191,7 +194,53 @@ def plot_density(den_gen, den_ip, den_gt):
 ##### Driver function for all evaluation metrics #####
 def driver(gens, ips, gts):
     ########################  Run evaluation metrics  ########################
-    # 1. PEAK COUNTS
+    # 1. AVERAGED POWER SPECTRUM, TRANSFER FUNCTION, AND CORRELATION COEFFICIENT
+    k = ps_2d(gens[0])[0]
+    ps_gen = np.vstack([ps_2d(im)[1] for im in gens]).mean(axis=0)
+    ps_ip = np.vstack([ps_2d(im)[1] for im in ips]).mean(axis=0)
+    ps_gt = np.vstack([ps_2d(im)[1] for im in gts]).mean(axis=0)
+
+    fig, ax = plt.subplots(3, 1, figsize=(22, 9))
+    ax[0].loglog(k, ps_gen, c='red', label='cGAN generated')
+    ax[0].loglog(k, ps_ip, c='green', label='simulation GR')
+    ax[0].loglog(k, ps_gt, c='blue', label='simulation f(R)')
+    ax[0].legend()
+
+    ax[1].plot(k, transfer_function(ps_gen, ps_gt), label='cGAN generated')
+    ax[1].plot(k, transfer_function(ps_ip, ps_gt), label='simulation GR')
+    ax[1].set_xscale('log')
+    ax[1].axhline(y=1.)
+    ax[1].set_ylabel('$T(k)$')
+    ax[1].set_xlabel('$k [h/Mpc]$')
+
+    # Correlation coefficient: It is a function of `k`, the wavenumber.
+    # Get wavenumbers
+    k = correlation_coefficient(gens, ips)[1]
+    corr_gen_gt = np.vstack([correlation_coefficient(im_gen, im_gt)[0] for im_gen, im_ip in zip(gens, ips)]).mean(axis=0)
+    corr_ip_gt = np.vstack([correlation_coefficient(im_ip, im_gt)[0] for im_gen, im_gt in zip(gens, gts)]).mean(axis=0)
+
+    ax[2].plot(k, 1 - corr_gen_gt ** 2, label='cGAN generated')
+    ax[2].plot(k, 1 - corr_ip_gt ** 2, label='simulation GR')
+    ax[2].set_yscale('log')
+    ax[2].set_xscale('log')
+
+    plt.show()
+
+#     plot_mat(corr_gen_ip, k, title='Cross-correlation coefficient: cGAN-generated f(R) vs Simulation GR')
+#     plot_mat(corr_gen_gt, k, title='Cross-correlation coefficient: cGAN-generated f(R) vs Simulation f(R)')
+
+#     ax = sns.heatmap(corr_gen_ip, linewidth=0.5, xticklabels=False, yticklabels=False, vmin=-1., vmax=1.)
+#     ax.set_title('Correlation coefficient: cGAN-generated f(R) vs Simulation GR')
+#     plt.show()
+
+#     ax = sns.heatmap(corr_gen_gt, linewidth=0.5, xticklabels=False, yticklabels=False, vmin=-1., vmax=1.)
+#     ax.set_title('Correlation coefficient: cGAN-generated f(R) vs Simulation f(R)')
+#     plt.show()
+
+    del corr_gen_gt, corr_ip_gt
+    gc.collect()
+
+    # 2. PEAK COUNTS
     func_pc = partial(peak_count, neighborhood_size=5, threshold=0.5)
     pc_gen = np.concatenate( [func_pc(im) for im in gens] )
     pc_ip = np.concatenate( [func_pc(im) for im in ips] )
@@ -204,20 +253,20 @@ def driver(gens, ips, gts):
     del pc_gen, pc_ip, pc_gt, wass_peak_ip_gen, wass_peak_gt_gen
     gc.collect()
 
-    # 2. PIXEL DISTANCE
+    # 3. PIXEL DISTANCE
     wass_pixel_ip_gen = wasserstein_distance_norm(p=ips, q=gens)
     wass_pixel_gt_gen = wasserstein_distance_norm(p=gts, q=gens)
     print(f'Pixel distances:\n\tbetween input GR and generated f(R): {wass_pixel_ip_gen}\n\tbetween ground_truth f(R) and generated f(R): {wass_pixel_gt_gen}')
     # TODO: Plot?
 
-    # 3. MS-SSIM
+    # 4. MS-SSIM
     # TODO
     # mssim_ip_gen = mssim(val_gen, val_ip)
     # mssim_gt_gen = mssim(val_gen, val_gt)
     # print(f'MS-SSIM:\n\tbetween generated f(R) and input GR: {mssim_ip_gen}\n\tbetween generated f(R) and ground_truth f(R): {mssim_gt_gen}')
     # TODO: Plot?
 
-    # Mean density
+    # 5. MEAN DENSITY
     mean_den_gen = np.array([mean_density(im) for im in gens])
     mean_den_ip = np.array([mean_density(im) for im in ips])
     mean_den_gt = np.array([mean_density(im) for im in gts])
@@ -231,7 +280,7 @@ def driver(gens, ips, gts):
     del mean_den_gen, mean_den_ip, mean_den_gt
     gc.collect()
 
-    # Median density
+    # 6. MEDIAN DENSITY
     median_den_gen = np.array([median_density(im) for im in gens])
     median_den_ip = np.array([median_density(im) for im in ips])
     median_den_gt = np.array([median_density(im) for im in gts])
@@ -243,24 +292,4 @@ def driver(gens, ips, gts):
     # TODO: Also plot fractional difference below this plot.
 
     del median_den_gen, median_den_ip, median_den_gt
-    gc.collect()
-
-    # Correlation coefficient: It is a function of `k`, the wavenumber.
-    # Get wavenumbers
-    k = correlation_coefficient(gens, ips)[1]
-    corr_gen_ip = np.vstack([correlation_coefficient(im_gen, im_ip)[0] for im_gen, im_ip in zip(gens, ips)])
-    corr_gen_gt = np.vstack([correlation_coefficient(im_gen, im_gt)[0] for im_gen, im_gt in zip(gens, gts)])
-
-    plot_mat(corr_gen_ip, k, title='Cross-correlation coefficient: cGAN-generated f(R) vs Simulation GR')
-    plot_mat(corr_gen_gt, k, title='Cross-correlation coefficient: cGAN-generated f(R) vs Simulation f(R)')
-
-#     ax = sns.heatmap(corr_gen_ip, linewidth=0.5, xticklabels=False, yticklabels=False, vmin=-1., vmax=1.)
-#     ax.set_title('Correlation coefficient: cGAN-generated f(R) vs Simulation GR')
-#     plt.show()
-
-#     ax = sns.heatmap(corr_gen_gt, linewidth=0.5, xticklabels=False, yticklabels=False, vmin=-1., vmax=1.)
-#     ax.set_title('Correlation coefficient: cGAN-generated f(R) vs Simulation f(R)')
-#     plt.show()
-
-    del corr_gen_ip, corr_gen_gt
     gc.collect()
