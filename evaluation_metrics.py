@@ -217,6 +217,7 @@ def driver(gens, ips, gts):
     print(f'Mean density distances:\n\tbetween input GR and generated f(R): {wass_meanden_ip_gen}\n\tbetween ground_truth f(R) and generated f(R): {wass_meanden_gt_gen}')
 
     plot_density(mean_den_gen, mean_den_ip, mean_den_gt)
+    # TODO: Also plot fractional difference below this plot.
 
     # Median density
     median_den_gen = np.array([median_density(im) for im in gens])
@@ -227,6 +228,7 @@ def driver(gens, ips, gts):
     print(f'Median density distances:\n\tbetween input GR and generated f(R): {wass_medianden_ip_gen}\n\tbetween ground_truth f(R) and generated f(R): {wass_medianden_gt_gen}')
 
     plot_density(median_den_gen, median_den_ip, median_den_gt)
+    # TODO: Also plot fractional difference below this plot.
 
     # Correlation coefficient: It is a function of `k`, the wavenumber.
     corr_gen_ip = np.vstack([correlation_coefficient(im_gen, im_ip) for im_gen, im_ip in zip(gens, ips)])
