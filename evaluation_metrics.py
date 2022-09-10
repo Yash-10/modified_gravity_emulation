@@ -166,7 +166,7 @@ def plot_mat(corr_mat, title=None):
     cax = divider.append_axes('right', size='5%', pad=0.05)
     mat = ax.matshow(corr_mat)
     fig.colorbar(mat, cax=cax, orientation='vertical')
-    ax,set_title(title)
+    ax.set_title(title)
     plt.show()
 
 def plot_density(den_gen, den_ip, den_gt):
