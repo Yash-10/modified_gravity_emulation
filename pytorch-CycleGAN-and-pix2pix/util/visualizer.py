@@ -6,6 +6,7 @@ import time
 from . import util, html
 from subprocess import Popen, PIPE
 
+import matplotlib.pyplot as plt
 
 try:
     import wandb
@@ -46,7 +47,9 @@ def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=512, use_w
         txts.append(label)
         links.append(image_name)
         if use_wandb:
-            ims_dict[label] = wandb.Image(im)
+            fig, ax = plt.subplots()
+            ax.imshow(im)
+            ims_dict[label] = fig
     webpage.add_images(ims, txts, links, width=width)
     if use_wandb:
         wandb.log(ims_dict)
