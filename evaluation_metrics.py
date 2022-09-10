@@ -205,6 +205,7 @@ def driver(gens, ips, gts):
     ax[0].loglog(k, ps_ip, c='green', label='simulation GR')
     ax[0].loglog(k, ps_gt, c='blue', label='simulation f(R)')
     ax[0].legend()
+    ax[0].set_title('Averaged Power Spectrum')
 
     ax[1].plot(k, transfer_function(ps_gen, ps_gt), label='cGAN generated')
     ax[1].plot(k, transfer_function(ps_ip, ps_gt), label='simulation GR')
@@ -212,6 +213,7 @@ def driver(gens, ips, gts):
     ax[1].axhline(y=1.)
     ax[1].set_ylabel('$T(k)$')
     ax[1].set_xlabel('$k [h/Mpc]$')
+    ax[1].set_title('Transfer function')
 
     # Correlation coefficient: It is a function of `k`, the wavenumber.
     # Get wavenumbers
@@ -225,6 +227,7 @@ def driver(gens, ips, gts):
     ax[2].set_xscale('log')
     ax[2].set_ylabel('$1 - r(k)^2$')
     ax[2].set_xlabel('$k [h/Mpc]$')
+    ax[2].set_title('Stochasticity')
 
     plt.show()
 
