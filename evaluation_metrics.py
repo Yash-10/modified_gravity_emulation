@@ -26,6 +26,8 @@ def ps_2d(delta, BoxSize=128):
     Returns:
         (numpy.ndarray, numpy.ndarray): The wavenumbers and power spectrum amplitudes.
     """
+    delta = delta.astype(np.float32)
+
     MAS = 'None'
     threads = 2
     Pk2D2 = PKL.Pk_plane(delta, BoxSize, MAS, threads)
@@ -142,7 +144,6 @@ def correlation_coefficient(delta1, delta2, BoxSize=128):
     Returns:
         r (float): Cross-correlation coefficient.
         k (numpy.ndarray): Wavenumbers.
-
     """
     delta1 = delta1.astype(np.float32)
     delta2 = delta2.astype(np.float32)
@@ -200,34 +201,36 @@ def driver(gens, ips, gts):
     ps_ip = np.vstack([ps_2d(im)[1] for im in ips]).mean(axis=0)
     ps_gt = np.vstack([ps_2d(im)[1] for im in gts]).mean(axis=0)
 
-    fig, ax = plt.subplots(3, 1, figsize=(22, 9))
+    fig, ax = plt.subplots(3, 1, figsize=(18, 18))
     ax[0].loglog(k, ps_gen, c='red', label='cGAN generated')
-    ax[0].loglog(k, ps_ip, c='green', label='simulation GR')
-    ax[0].loglog(k, ps_gt, c='blue', label='simulation f(R)')
+    ax[0].loglog(k, ps_ip, c='green', label='GR simulation')
+    ax[0].loglog(k, ps_gt, c='blue', label='f(R) simulation')
     ax[0].legend()
     ax[0].set_title('Averaged Power Spectrum')
 
     ax[1].plot(k, transfer_function(ps_gen, ps_gt), label='cGAN generated')
-    ax[1].plot(k, transfer_function(ps_ip, ps_gt), label='simulation GR')
+    ax[1].plot(k, transfer_function(ps_ip, ps_gt), label='GR simulation')
     ax[1].set_xscale('log')
-    ax[1].axhline(y=1.)
+    ax[1].axhline(y=1., c='black', linestyle='--')
     ax[1].set_ylabel('$T(k)$')
     ax[1].set_xlabel('$k [h/Mpc]$')
     ax[1].set_title('Transfer function')
+    ax[1].legend()
 
     # Correlation coefficient: It is a function of `k`, the wavenumber.
     # Get wavenumbers
-    k = correlation_coefficient(gens, ips)[1]
-    corr_gen_gt = np.vstack([correlation_coefficient(im_gen, im_gt)[0] for im_gen, im_ip in zip(gens, ips)]).mean(axis=0)
-    corr_ip_gt = np.vstack([correlation_coefficient(im_ip, im_gt)[0] for im_gen, im_gt in zip(gens, gts)]).mean(axis=0)
+    k = correlation_coefficient(gens[0], ips[0])[1]
+    corr_gen_gt = np.vstack([correlation_coefficient(im_gen, im_gt)[0] for im_gen, im_gt in zip(gens, ips)]).mean(axis=0)
+    corr_ip_gt = np.vstack([correlation_coefficient(im_ip, im_gt)[0] for im_ip, im_gt in zip(ips, gts)]).mean(axis=0)
 
     ax[2].plot(k, 1 - corr_gen_gt ** 2, label='cGAN generated')
-    ax[2].plot(k, 1 - corr_ip_gt ** 2, label='simulation GR')
+    ax[2].plot(k, 1 - corr_ip_gt ** 2, label='GR simulation')
     ax[2].set_yscale('log')
     ax[2].set_xscale('log')
     ax[2].set_ylabel('$1 - r(k)^2$')
     ax[2].set_xlabel('$k [h/Mpc]$')
     ax[2].set_title('Stochasticity')
+    ax[2].legend()
 
     plt.show()
 
