@@ -20,11 +20,9 @@ from torchmetrics.functional import multiscale_structural_similarity_index_measu
 # Power spectrum
 def ps_2d(delta, BoxSize=128):
     """Calculates the 2D power spectrum of a density field.
-
     Args:
         delta (numpy.ndarray): Density slice.
         BoxSize (float): Simulation box size.
-
     Returns:
         (numpy.ndarray, numpy.ndarray): The wavenumbers and power spectrum amplitudes.
     """
@@ -46,11 +44,9 @@ def wasserstein_distance_norm(p, q):
     - p denotes real images and q denotes fake (or generated) images.
     - p and q both are of shape (n_examples, height, width).
     - p and q are standardized using mean and standard deviation of p.
-
     Args:
         p (numpy.ndarray): Real images.
         q (numpy.ndarray): Fake images.
-
     Returns:
         float: 1-Wasserstein distance between two sets of images.
     """
@@ -69,14 +65,12 @@ def peak_count(X, neighborhood_size=5, threshold=0.5):
     :param threshold: minimum distance betweent the minimum and the maximum to be considered a local maximum
                       Helps remove noise peaks (0.5 since the number of particle is supposed to be an integer)
     :return: vector of peaks found in the array (int)
-
     How to use
     ----------
     func_pc = partial(peak_count, neighborhood_size=5, threshold=0)
     pcr = np.concatenate( [func_pc(im) for im in imr] )
     pcf = np.concatenate( [func_pc(im) for im in imf] )
     wass_peak = wasserstein_distance_norm(p=pcr, q=pcf)
-
     """
     size = len(X.shape)
     if len(X.shape) == 1:
@@ -101,11 +95,9 @@ def peak_count(X, neighborhood_size=5, threshold=0.5):
 # MS-SSIM
 def mssim(gen_imgs, gt_imgs):
     """Calculates the MS-SSIM between two sets of images.
-
     Args:
         gen_imgs (numpy.ndarray): Generated images.
         gt_imgs (numpy.ndarray): Ground-truth images (from simulation).
-
     Returns:
         float: The MS-SSIM value.
     """
@@ -121,10 +113,8 @@ def mssim(gen_imgs, gt_imgs):
 # Mean density.
 def mean_density(img):
     """Calculates mean density of a 2D slice.
-
     Args:
         img (numpy.ndarray): 2D density slice.
-
     Returns:
         float: Mean density.
     """
@@ -133,10 +123,8 @@ def mean_density(img):
 # Median density.
 def median_density(img):
     """Calculates median density of a 2D slice.
-
     Args:
         img (numpy.ndarray): 2D density slice.
-
     Returns:
         float: Median density.
     """
@@ -147,15 +135,16 @@ def correlation_coefficient(delta1, delta2, BoxSize=128):
     """Calculates the cross-correlation coefficient which is a form of normalized cross-power spectrum.
     See equation 6 in https://www.pnas.org/doi/pdf/10.1073/pnas.1821458116 for more details.
     See the corresponding line in Pylians3 source code: `self.r  = self.XPk/np.sqrt(self.Pk[:,0]*self.Pk[:,1])` (https://github.com/franciscovillaescusa/Pylians3/blob/21a33736785ca84dd89a5ac2f73f7b43e981f53d/library/Pk_library/Pk_library.pyx#L1218)
-
     Args:
         delta1 (numpy.ndarray): generated (or predicted) 2D density slice.
         delta2 (numpy.ndarray): ground-truth 2D density slice.
         BoxSize (float): Simulation box size.
-
     Returns:
         float: Cross-correlation coefficient.
     """
+    delta1 = delta1.astype(np.float32)
+    delta2 = delta2.astype(np.float32)
+
     # compute cross-power spectrum between two images
     XPk2D = PKL.XPk_plane(delta1, delta2, BoxSize, MAS1='None', MAS2='None', threads=2)
 
@@ -169,12 +158,24 @@ def correlation_coefficient(delta1, delta2, BoxSize=128):
     # Nmodes = XPk2D.Nmodes   #number of modes in each k-bin
     return r
 
+def plot_mat(corr_mat, title=None):
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+    plt.rcParams['figure.figsize'] = [20, 8]
+    fig, ax = plt.subplots()
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes('right', size='5%', pad=0.05)
+    mat = ax.matshow(corr_mat)
+    fig.colorbar(mat, cax=cax, orientation='vertical')
+    ax,set_title(title)
+    plt.show()
+
 def plot_density(den_gen, den_ip, den_gt):
     plt.rcParams['figure.figsize'] = [8, 6]
     fig, ax = plt.subplots()
-    sns.kdeplot(den_gen, ax=ax, color='red', shade=False)
+    sns.kdeplot(den_gen, ax=ax, color='red', shade=False, x='cosmological density', y=None)
     sns.kdeplot(den_ip, ax=ax, color='blue', shade=False)
     sns.kdeplot(den_gt, ax=ax, color='green', shade=False)
+    ax.set_title('Density distribution')
     handles = [
             mpatches.Patch(facecolor=plt.cm.Reds(100), label="cGAN generated"),
             mpatches.Patch(facecolor=plt.cm.Blues(100), label="GR simulation"),
@@ -244,13 +245,16 @@ def driver(gens, ips, gts):
     corr_gen_ip = np.vstack([correlation_coefficient(im_gen, im_ip) for im_gen, im_ip in zip(gens, ips)])
     corr_gen_gt = np.vstack([correlation_coefficient(im_gen, im_gt) for im_gen, im_gt in zip(gens, gts)])
 
-    ax = sns.heatmap(corr_gen_ip, linewidth=0.5, vmin=0., vmax=1.)
-    ax.set_title('Correlation coefficient: cGAN-generated f(R) vs Simulation GR')
-    plt.show()
+    plot_mat(corr_gen_ip, title='Cross-correlation coefficient: cGAN-generated f(R) vs Simulation GR')
+    plot_mat(corr_gen_gt, title='Cross-correlation coefficient: cGAN-generated f(R) vs Simulation f(R)')
 
-    ax = sns.heatmap(corr_gen_gt, linewidth=0.5, vmin=0., vmax=1.)
-    ax.set_title('Correlation coefficient: cGAN-generated f(R) vs Simulation f(R)')
-    plt.show()
+#     ax = sns.heatmap(corr_gen_ip, linewidth=0.5, xticklabels=False, yticklabels=False, vmin=-1., vmax=1.)
+#     ax.set_title('Correlation coefficient: cGAN-generated f(R) vs Simulation GR')
+#     plt.show()
+
+#     ax = sns.heatmap(corr_gen_gt, linewidth=0.5, xticklabels=False, yticklabels=False, vmin=-1., vmax=1.)
+#     ax.set_title('Correlation coefficient: cGAN-generated f(R) vs Simulation f(R)')
+#     plt.show()
 
     del corr_gen_ip, corr_gen_gt
     gc.collect()
