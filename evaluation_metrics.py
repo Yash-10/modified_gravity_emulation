@@ -140,7 +140,9 @@ def correlation_coefficient(delta1, delta2, BoxSize=128):
         delta2 (numpy.ndarray): ground-truth 2D density slice.
         BoxSize (float): Simulation box size.
     Returns:
-        float: Cross-correlation coefficient.
+        r (float): Cross-correlation coefficient.
+        k (numpy.ndarray): Wavenumbers.
+
     """
     delta1 = delta1.astype(np.float32)
     delta2 = delta2.astype(np.float32)
@@ -149,16 +151,16 @@ def correlation_coefficient(delta1, delta2, BoxSize=128):
     XPk2D = PKL.XPk_plane(delta1, delta2, BoxSize, MAS1='None', MAS2='None', threads=2)
 
     # get the attributes of the routine
-    # k      = XPk2D.k        #k in h/Mpc
+    k      = XPk2D.k        #k in h/Mpc
     # Pk     = XPk2D.Pk       #auto-Pk of the two maps in (Mpc/h)^2
     # Pk1    = Pk[:,0]        #auto-Pk of the first map in (Mpc/h^2)
     # Pk2    = Pk[:,1]        #auto-Pk of the second map in (Mpc/h^2)
     # XPk    = XPk2D.XPk      #cross-Pk in (Mpc/h)^2
     r      = XPk2D.r        #cross-correlation coefficient
     # Nmodes = XPk2D.Nmodes   #number of modes in each k-bin
-    return r
+    return r, k
 
-def plot_mat(corr_mat, title=None):
+def plot_mat(corr_mat, k, title=None):
     from mpl_toolkits.axes_grid1 import make_axes_locatable
     plt.rcParams['figure.figsize'] = [20, 8]
     fig, ax = plt.subplots()
@@ -167,6 +169,8 @@ def plot_mat(corr_mat, title=None):
     mat = ax.matshow(corr_mat)
     fig.colorbar(mat, cax=cax, orientation='vertical')
     ax.set_title(title)
+    ax.set_xticks(np.arange(len(k)))
+    ax.set_xticklabels(k)
     plt.show()
 
 def plot_density(den_gen, den_ip, den_gt):
@@ -242,11 +246,13 @@ def driver(gens, ips, gts):
     gc.collect()
 
     # Correlation coefficient: It is a function of `k`, the wavenumber.
-    corr_gen_ip = np.vstack([correlation_coefficient(im_gen, im_ip) for im_gen, im_ip in zip(gens, ips)])
-    corr_gen_gt = np.vstack([correlation_coefficient(im_gen, im_gt) for im_gen, im_gt in zip(gens, gts)])
+    # Get wavenumbers
+    k = correlation_coefficient(gens, ips)[1]
+    corr_gen_ip = np.vstack([correlation_coefficient(im_gen, im_ip)[0] for im_gen, im_ip in zip(gens, ips)])
+    corr_gen_gt = np.vstack([correlation_coefficient(im_gen, im_gt)[0] for im_gen, im_gt in zip(gens, gts)])
 
-    plot_mat(corr_gen_ip, title='Cross-correlation coefficient: cGAN-generated f(R) vs Simulation GR')
-    plot_mat(corr_gen_gt, title='Cross-correlation coefficient: cGAN-generated f(R) vs Simulation f(R)')
+    plot_mat(corr_gen_ip, k, title='Cross-correlation coefficient: cGAN-generated f(R) vs Simulation GR')
+    plot_mat(corr_gen_gt, k, title='Cross-correlation coefficient: cGAN-generated f(R) vs Simulation f(R)')
 
 #     ax = sns.heatmap(corr_gen_ip, linewidth=0.5, xticklabels=False, yticklabels=False, vmin=-1., vmax=1.)
 #     ax.set_title('Correlation coefficient: cGAN-generated f(R) vs Simulation GR')
