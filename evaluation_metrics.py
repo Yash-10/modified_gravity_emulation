@@ -223,6 +223,8 @@ def driver(gens, ips, gts):
     ax[2].plot(k, 1 - corr_ip_gt ** 2, label='simulation GR')
     ax[2].set_yscale('log')
     ax[2].set_xscale('log')
+    ax[2].set_ylabel('$1 - r(k)^2$')
+    ax[2].set_xlabel('$k [h/Mpc]$')
 
     plt.show()
 
