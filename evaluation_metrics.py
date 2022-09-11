@@ -29,6 +29,7 @@ def ps_2d(delta, BoxSize=128):
     Returns:
         (numpy.ndarray, numpy.ndarray): The wavenumbers and power spectrum amplitudes.
     """
+    # TODO: Use density contrast instead of density??
     delta = delta.astype(np.float32)
 
     MAS = 'None'
@@ -183,18 +184,30 @@ def transfer_function(ps_pred, ps_true):
 def plot_density(den_gen, den_ip, den_gt):
     plt.rcParams['figure.figsize'] = [8, 6]
     plt.rc('grid', linestyle="--", color='black')
-    fig, ax = plt.subplots()
-    sns.kdeplot(den_gen, ax=ax, shade=False, x='cosmological density', y=None, color=gen_gt_color)
-    sns.kdeplot(den_ip, ax=ax, shade=False, c=ip_gt_color)
-    sns.kdeplot(den_gt, ax=ax, shade=False, c='black')
-    ax.set_title('Density distribution')
-    ax.set_xlabel('Cosmological density')
+    fig, ax = plt.subplots(2, 1, figsize=(8, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
+    fig.subplots_adjust(hspace=0)
+    sns.kdeplot(den_gen, ax=ax[0], shade=False, x='cosmological density', y=None, color=gen_gt_color)
+    sns.kdeplot(den_ip, ax=ax[0], shade=False, c=ip_gt_color)
+    sns.kdeplot(den_gt, ax=ax[0], shade=False, c='black')
+    ax[0].set_title('Density distribution')
+    ax[0].set_xlabel('Cosmological density')
     handles = [
             mpatches.Patch(facecolor=plt.cm.Reds(100), label="cGAN generated"),
             mpatches.Patch(facecolor=plt.cm.Blues(100), label="GR simulation"),
             mpatches.Patch(facecolor=plt.cm.Greens(100), label="f(R) simulation")
         ]
-    ax.legend(handles=handles)
+    ax[0].legend(handles=handles)
+
+    ax[1].set_xscale('log')
+    ax[1].plot(100 * (den_gt - den_gen) / den_gt, c=gen_gt_color)
+    ax[1].plot(100 * (den_gt - den_ip) / den_gt, c=ip_gt_color)
+    ax[1].plot(100 * (den_gt - den_gt) / den_gt, c='black')
+    ax[1].set_ylabel('Relative difference (%)', fontsize=14)
+    ax[1].set_xlabel('k (h/Mpc)', fontsize=14);
+    ax[1].tick_params(axis='x', labelsize=12)
+    ax[1].tick_params(axis='y', labelsize=12)
+    plt.show()
+
     plt.grid(True)
     plt.show()
 
@@ -298,17 +311,13 @@ def driver(gens, ips, gts):
     sns.kdeplot(pc_gt, ax=ax[0], shade=False, x='pixel value', y=None, color='black')
 
     ax[1].set_xscale('log')
-    ax[1].plot(k, 100 * (pc_gt - pc_gen) / pc_gt, c=gen_gt_color)
-    ax[1].plot(k, 100 * (pc_gt - pc_ip) / pc_gt, c=ip_gt_color)
-    ax[1].plot(k, 100 * (pc_gt - pc_gt) / pc_gt, c='black')
+    ax[1].plot(100 * (pc_gt - pc_gen) / pc_gt, c=gen_gt_color)
+    ax[1].plot(100 * (pc_gt - pc_ip) / pc_gt, c=ip_gt_color)
+    ax[1].plot(100 * (pc_gt - pc_gt) / pc_gt, c='black')
     ax[1].set_ylabel('Relative difference (%)', fontsize=14)
     ax[1].set_xlabel('k (h/Mpc)', fontsize=14);
     ax[1].tick_params(axis='x', labelsize=12)
     ax[1].tick_params(axis='y', labelsize=12)
-    ax[1].fill_between(k, -25, 25, alpha=0.2)
-    ax[0].set_xlim([k.min(), 15.])
-    ax[1].set_xlim([k.min(), 15.])
-    ax[1].set_ylim([-50, 50])
     plt.show()
 
     del pc_gen, pc_ip, pc_gt
@@ -336,17 +345,13 @@ def driver(gens, ips, gts):
     sns.kdeplot(pixel_gt, ax=ax[0], shade=False, x='pixel value', y=None, color='black')
 
     ax[1].set_xscale('log')
-    ax[1].plot(k, 100 * (pixel_gt - pixel_gen) / ps_gt, c=gen_gt_color)
-    ax[1].plot(k, 100 * (pixel_gt - pixel_ip) / ps_gt, c=ip_gt_color)
-    ax[1].plot(k, 100 * (pixel_gt - pixel_gt) / ps_gt, c='black')
+    ax[1].plot(100 * (pixel_gt - pixel_gen) / ps_gt, c=gen_gt_color)
+    ax[1].plot(100 * (pixel_gt - pixel_ip) / ps_gt, c=ip_gt_color)
+    ax[1].plot(100 * (pixel_gt - pixel_gt) / ps_gt, c='black')
     ax[1].set_ylabel('Relative difference (%)', fontsize=14)
     ax[1].set_xlabel('k (h/Mpc)', fontsize=14);
     ax[1].tick_params(axis='x', labelsize=12)
     ax[1].tick_params(axis='y', labelsize=12)
-    ax[1].fill_between(k, -25, 25, alpha=0.2)
-    ax[0].set_xlim([k.min(), 15.])
-    ax[1].set_xlim([k.min(), 15.])
-    ax[1].set_ylim([-50, 50])
     plt.show()
 
     del pixel_gen, pixel_ip, pixel_gt
