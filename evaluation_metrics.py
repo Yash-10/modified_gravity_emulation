@@ -183,32 +183,30 @@ def transfer_function(ps_pred, ps_true):
 
 def plot_density(den_gen, den_ip, den_gt):
     plt.rcParams['figure.figsize'] = [8, 6]
-    plt.rc('grid', linestyle="--", color='black')
     fig, ax = plt.subplots(2, 1, figsize=(8, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
     fig.subplots_adjust(hspace=0)
     sns.kdeplot(den_gen, ax=ax[0], shade=False, x='cosmological density', y=None, color=gen_gt_color)
     sns.kdeplot(den_ip, ax=ax[0], shade=False, c=ip_gt_color)
     sns.kdeplot(den_gt, ax=ax[0], shade=False, c='black')
-    ax[0].set_title('Density distribution')
+    ax[0].set_title('Cosmological density distribution')
     ax[0].set_xlabel('Cosmological density')
     handles = [
-            mpatches.Patch(facecolor=plt.cm.Reds(100), label="cGAN generated"),
-            mpatches.Patch(facecolor=plt.cm.Blues(100), label="GR simulation"),
-            mpatches.Patch(facecolor=plt.cm.Greens(100), label="f(R) simulation")
+            mpatches.Patch(facecolor=gen_gt_color, label="cGAN generated"),
+            mpatches.Patch(facecolor=ip_gt_color, label="GR simulation"),
+            mpatches.Patch(facecolor='black', label="f(R) simulation")
         ]
     ax[0].legend(handles=handles)
 
     ax[1].set_xscale('log')
     ax[1].plot(100 * (den_gt - den_gen) / den_gt, c=gen_gt_color)
     ax[1].plot(100 * (den_gt - den_ip) / den_gt, c=ip_gt_color)
-    ax[1].plot(100 * (den_gt - den_gt) / den_gt, c='black')
+    ax[1].axhline(y=0, linestyle='--', c='black')
     ax[1].set_ylabel('Relative difference (%)', fontsize=14)
     ax[1].set_xlabel('k (h/Mpc)', fontsize=14);
     ax[1].tick_params(axis='x', labelsize=12)
     ax[1].tick_params(axis='y', labelsize=12)
     plt.show()
 
-    plt.grid(True)
     plt.show()
 
 def frac_diff(real, fake):
@@ -232,16 +230,14 @@ def driver(gens, ips, gts):
     ax[0].loglog(k, ps_ip, c=ip_gt_color, label='GR simulation')
     ax[0].loglog(k, ps_gt, c='black', label='f(R) simulation')
     ax[0].legend()
-    ax[0].set_title('Averaged Power Spectrum')
-    plt.rc('grid', linestyle="--", color='black')
+    ax[0].set_title('Averaged Power Spectrum', fontsize=18)
     ax[0].tick_params(axis='x', labelsize=12)
     ax[0].tick_params(axis='y', labelsize=12)
-    ax[0].set_title("2D Power Spectrum", fontsize=18)
 
     ax[1].set_xscale('log')
     ax[1].plot(k, 100 * (ps_gt - ps_gen) / ps_gt, c=gen_gt_color)
     ax[1].plot(k, 100 * (ps_gt - ps_ip) / ps_gt, c=ip_gt_color)
-    ax[1].plot(k, 100 * (ps_gt - ps_gt) / ps_gt, c='black')
+    ax[1].axhline(y=0, c='black', linestyle='--')
     ax[1].set_ylabel('Relative difference (%)', fontsize=14)
     ax[1].set_xlabel('k (h/Mpc)', fontsize=14);
     ax[1].tick_params(axis='x', labelsize=12)
@@ -262,7 +258,6 @@ def driver(gens, ips, gts):
     ax[0].set_xlabel('$k [h/Mpc]$')
     ax[0].set_title('Transfer function')
     ax[0].legend()
-    plt.rc('grid', linestyle="--", color='black')
 
     # Correlation coefficient: It is a function of `k`, the wavenumber.
     # Get wavenumbers
@@ -278,8 +273,6 @@ def driver(gens, ips, gts):
     ax[1].set_xlabel('$k [h/Mpc]$')
     ax[1].set_title('Stochasticity')
     ax[1].legend()
-    plt.rc('grid', linestyle="--", color='black')
-    plt.grid(True)
 
     plt.show()
 
@@ -300,27 +293,27 @@ def driver(gens, ips, gts):
     # 2. PEAK COUNTS
     func_pc = partial(peak_count, neighborhood_size=5, threshold=0.5)
 
-    pc_gen = np.vstack( [func_pc(im) for im in gens] ).mean(axis=0)
-    pc_ip = np.vstack( [func_pc(im) for im in ips] ).mean(axis=0)
-    pc_gt = np.vstack( [func_pc(im) for im in gts] ).mean(axis=0)
-    fig, ax = plt.subplots(2, 1, figsize=(8, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
-    fig.subplots_adjust(hspace=0)
+#     pc_gen = np.vstack( [func_pc(im) for im in gens] ).mean(axis=0)
+#     pc_ip = np.vstack( [func_pc(im) for im in ips] ).mean(axis=0)
+#     pc_gt = np.vstack( [func_pc(im) for im in gts] ).mean(axis=0)
+#     fig, ax = plt.subplots(2, 1, figsize=(8, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
+#     fig.subplots_adjust(hspace=0)
 
-    sns.kdeplot(pc_gen, ax=ax[0], shade=False, x='pixel value', y=None, color=gen_gt_color)
-    sns.kdeplot(pc_ip, ax=ax[0], shade=False, x='pixel value', y=None, color=ip_gt_color)
-    sns.kdeplot(pc_gt, ax=ax[0], shade=False, x='pixel value', y=None, color='black')
+#     sns.kdeplot(pc_gen, ax=ax[0], shade=False, x='pixel value', y=None, color=gen_gt_color)
+#     sns.kdeplot(pc_ip, ax=ax[0], shade=False, x='pixel value', y=None, color=ip_gt_color)
+#     sns.kdeplot(pc_gt, ax=ax[0], shade=False, x='pixel value', y=None, color='black')
 
-    ax[1].set_xscale('log')
-    ax[1].plot(100 * (pc_gt - pc_gen) / pc_gt, c=gen_gt_color)
-    ax[1].plot(100 * (pc_gt - pc_ip) / pc_gt, c=ip_gt_color)
-    ax[1].plot(100 * (pc_gt - pc_gt) / pc_gt, c='black')
-    ax[1].set_ylabel('Relative difference (%)', fontsize=14)
-    ax[1].set_xlabel('k (h/Mpc)', fontsize=14);
-    ax[1].tick_params(axis='x', labelsize=12)
-    ax[1].tick_params(axis='y', labelsize=12)
-    plt.show()
+#     ax[1].set_xscale('log')
+#     ax[1].plot(100 * (pc_gt - pc_gen) / pc_gt, c=gen_gt_color)
+#     ax[1].plot(100 * (pc_gt - pc_ip) / pc_gt, c=ip_gt_color)
+#     ax[1].plot(100 * (pc_gt - pc_gt) / pc_gt, c='black')
+#     ax[1].set_ylabel('Relative difference (%)', fontsize=14)
+#     ax[1].set_xlabel('k (h/Mpc)', fontsize=14);
+#     ax[1].tick_params(axis='x', labelsize=12)
+#     ax[1].tick_params(axis='y', labelsize=12)
+#     plt.show()
 
-    del pc_gen, pc_ip, pc_gt
+#     del pc_gen, pc_ip, pc_gt
 
     pc_gen = np.concatenate( [func_pc(im) for im in gens] )
     pc_ip = np.concatenate( [func_pc(im) for im in ips] )
@@ -334,27 +327,27 @@ def driver(gens, ips, gts):
     gc.collect()
 
     # 3. PIXEL DISTANCE
-    pixel_gen = np.vstack( [func_pc(im) for im in gens] ).mean(axis=0)
-    pixel_ip = np.vstack( [func_pc(im) for im in ips] ).mean(axis=0)
-    pixel_gt = np.vstack( [func_pc(im) for im in gts] ).mean(axis=0)
-    fig, ax = plt.subplots(2, 1, figsize=(8, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
-    fig.subplots_adjust(hspace=0)
+#     pixel_gen = np.vstack( [func_pc(im) for im in gens] ).mean(axis=0)
+#     pixel_ip = np.vstack( [func_pc(im) for im in ips] ).mean(axis=0)
+#     pixel_gt = np.vstack( [func_pc(im) for im in gts] ).mean(axis=0)
+#     fig, ax = plt.subplots(2, 1, figsize=(8, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
+#     fig.subplots_adjust(hspace=0)
 
-    sns.kdeplot(pixel_gen, ax=ax[0], shade=False, x='pixel value', y=None, color=gen_gt_color)
-    sns.kdeplot(pixel_ip, ax=ax[0], shade=False, x='pixel value', y=None, color=ip_gt_color)
-    sns.kdeplot(pixel_gt, ax=ax[0], shade=False, x='pixel value', y=None, color='black')
+#     sns.kdeplot(pixel_gen, ax=ax[0], shade=False, x='pixel value', y=None, color=gen_gt_color)
+#     sns.kdeplot(pixel_ip, ax=ax[0], shade=False, x='pixel value', y=None, color=ip_gt_color)
+#     sns.kdeplot(pixel_gt, ax=ax[0], shade=False, x='pixel value', y=None, color='black')
 
-    ax[1].set_xscale('log')
-    ax[1].plot(100 * (pixel_gt - pixel_gen) / ps_gt, c=gen_gt_color)
-    ax[1].plot(100 * (pixel_gt - pixel_ip) / ps_gt, c=ip_gt_color)
-    ax[1].plot(100 * (pixel_gt - pixel_gt) / ps_gt, c='black')
-    ax[1].set_ylabel('Relative difference (%)', fontsize=14)
-    ax[1].set_xlabel('k (h/Mpc)', fontsize=14);
-    ax[1].tick_params(axis='x', labelsize=12)
-    ax[1].tick_params(axis='y', labelsize=12)
-    plt.show()
+#     ax[1].set_xscale('log')
+#     ax[1].plot(100 * (pixel_gt - pixel_gen) / ps_gt, c=gen_gt_color)
+#     ax[1].plot(100 * (pixel_gt - pixel_ip) / ps_gt, c=ip_gt_color)
+#     ax[1].plot(100 * (pixel_gt - pixel_gt) / ps_gt, c='black')
+#     ax[1].set_ylabel('Relative difference (%)', fontsize=14)
+#     ax[1].set_xlabel('k (h/Mpc)', fontsize=14);
+#     ax[1].tick_params(axis='x', labelsize=12)
+#     ax[1].tick_params(axis='y', labelsize=12)
+#     plt.show()
 
-    del pixel_gen, pixel_ip, pixel_gt
+#     del pixel_gen, pixel_ip, pixel_gt
 
     wass_pixel_ip_gen = wasserstein_distance_norm(p=ips, q=gens)
     wass_pixel_gt_gen = wasserstein_distance_norm(p=gts, q=gens)
