@@ -212,7 +212,7 @@ def plot_density(den_gen, den_ip, den_gt):
     plt.show()
 
 def frac_diff(real, fake):
-    return np.abs(real - fake)_ / real
+    return np.abs(real - fake) / real
 
 ##### Driver function for all evaluation metrics #####
 def driver(gens, ips, gts):
