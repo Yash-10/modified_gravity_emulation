@@ -17,6 +17,9 @@ import scipy.ndimage.filters as filters
 import torch
 from torchmetrics.functional import multiscale_structural_similarity_index_measure
 
+gen_gt_color = '#FC9272'
+ip_gt_color = '#636363'
+
 # Power spectrum
 def ps_2d(delta, BoxSize=128):
     """Calculates the 2D power spectrum of a density field.
@@ -164,36 +167,44 @@ def correlation_coefficient(delta1, delta2, BoxSize=128):
 def transfer_function(ps_pred, ps_true):
     return np.sqrt(ps_pred/ps_true)
 
-def plot_mat(corr_mat, k, title=None):
-    from mpl_toolkits.axes_grid1 import make_axes_locatable
-    plt.rcParams['figure.figsize'] = [20, 8]
-    fig, ax = plt.subplots()
-    divider = make_axes_locatable(ax)
-    cax = divider.append_axes('right', size='5%', pad=0.05)
-    mat = ax.matshow(corr_mat)
-    fig.colorbar(mat, cax=cax, orientation='vertical')
-    ax.set_title(title)
-    ax.set_xticks(np.arange(len(k)))
-    ax.set_xticklabels(k)
-    plt.show()
+# def plot_mat(corr_mat, k, title=None):
+#     from mpl_toolkits.axes_grid1 import make_axes_locatable
+#     plt.rcParams['figure.figsize'] = [20, 8]
+#     fig, ax = plt.subplots()
+#     divider = make_axes_locatable(ax)
+#     cax = divider.append_axes('right', size='5%', pad=0.05)
+#     mat = ax.matshow(corr_mat)
+#     fig.colorbar(mat, cax=cax, orientation='vertical')
+#     ax.set_title(title)
+#     ax.set_xticks(np.arange(len(k)))
+#     ax.set_xticklabels(k)
+#     plt.show()
 
 def plot_density(den_gen, den_ip, den_gt):
     plt.rcParams['figure.figsize'] = [8, 6]
+    plt.rc('grid', linestyle="--", color='black')
     fig, ax = plt.subplots()
-    sns.kdeplot(den_gen, ax=ax, color='red', shade=False, x='cosmological density', y=None)
-    sns.kdeplot(den_ip, ax=ax, color='blue', shade=False)
-    sns.kdeplot(den_gt, ax=ax, color='green', shade=False)
+    sns.kdeplot(den_gen, ax=ax, shade=False, x='cosmological density', y=None, color=gen_gt_color)
+    sns.kdeplot(den_ip, ax=ax, shade=False, c=ip_gt_color)
+    sns.kdeplot(den_gt, ax=ax, shade=False, c='black')
     ax.set_title('Density distribution')
+    ax.set_xlabel('Cosmological density')
     handles = [
             mpatches.Patch(facecolor=plt.cm.Reds(100), label="cGAN generated"),
             mpatches.Patch(facecolor=plt.cm.Blues(100), label="GR simulation"),
             mpatches.Patch(facecolor=plt.cm.Greens(100), label="f(R) simulation")
         ]
     ax.legend(handles=handles)
+    plt.grid(True)
     plt.show()
+
+def frac_diff(real, fake):
+    return np.abs(real - fake)_ / real
 
 ##### Driver function for all evaluation metrics #####
 def driver(gens, ips, gts):
+    # TODO: Also show shaded errorbars around plots since all are averaged over multiple images.
+
     ########################  Run evaluation metrics  ########################
     # 1. AVERAGED POWER SPECTRUM, TRANSFER FUNCTION, AND CORRELATION COEFFICIENT
     k = ps_2d(gens[0])[0]
@@ -201,21 +212,44 @@ def driver(gens, ips, gts):
     ps_ip = np.vstack([ps_2d(im)[1] for im in ips]).mean(axis=0)
     ps_gt = np.vstack([ps_2d(im)[1] for im in gts]).mean(axis=0)
 
-    fig, ax = plt.subplots(3, 1, figsize=(18, 18))
-    ax[0].loglog(k, ps_gen, c='red', label='cGAN generated')
-    ax[0].loglog(k, ps_ip, c='green', label='GR simulation')
-    ax[0].loglog(k, ps_gt, c='blue', label='f(R) simulation')
+    fig, ax = plt.subplots(2, 1, figsize=(8, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
+    fig.subplots_adjust(hspace=0)
+
+    ax[0].loglog(k, ps_gen, c=gen_gt_color, label='cGAN generated')
+    ax[0].loglog(k, ps_ip, c=ip_gt_color, label='GR simulation')
+    ax[0].loglog(k, ps_gt, c='black', label='f(R) simulation')
     ax[0].legend()
     ax[0].set_title('Averaged Power Spectrum')
+    plt.rc('grid', linestyle="--", color='black')
+    ax[0].tick_params(axis='x', labelsize=12)
+    ax[0].tick_params(axis='y', labelsize=12)
+    ax[0].set_title("2D Power Spectrum", fontsize=18)
 
-    ax[1].plot(k, transfer_function(ps_gen, ps_gt), label='cGAN generated')
-    ax[1].plot(k, transfer_function(ps_ip, ps_gt), label='GR simulation')
     ax[1].set_xscale('log')
-    ax[1].axhline(y=1., c='black', linestyle='--')
-    ax[1].set_ylabel('$T(k)$')
-    ax[1].set_xlabel('$k [h/Mpc]$')
-    ax[1].set_title('Transfer function')
-    ax[1].legend()
+    ax[1].plot(k, 100 * (ps_gt - ps_gen) / ps_gt, c=gen_gt_color)
+    ax[1].plot(k, 100 * (ps_gt - ps_ip) / ps_gt, c=ip_gt_color)
+    ax[1].plot(k, 100 * (ps_gt - ps_gt) / ps_gt, c='black')
+    ax[1].set_ylabel('Relative difference (%)', fontsize=14)
+    ax[1].set_xlabel('k (h/Mpc)', fontsize=14);
+    ax[1].tick_params(axis='x', labelsize=12)
+    ax[1].tick_params(axis='y', labelsize=12)
+    ax[1].fill_between(k, -25, 25, alpha=0.2)
+    ax[0].set_xlim([k.min(), 15.])
+    ax[1].set_xlim([k.min(), 15.])
+    ax[1].set_ylim([-50, 50])
+
+    # Now plot transfer function and stochasticity.
+    fig, ax = plt.subplots(2, 1, figsize=(18, 18))
+
+    ax[0].plot(k, transfer_function(ps_gen, ps_gt), label='cGAN generated', c=gen_gt_color)
+    ax[0].plot(k, transfer_function(ps_ip, ps_gt), label='GR simulation', c=ip_gt_color)
+    ax[0].set_xscale('log')
+    ax[0].axhline(y=1., c='black', linestyle='--')
+    ax[0].set_ylabel('$T(k)$')
+    ax[0].set_xlabel('$k [h/Mpc]$')
+    ax[0].set_title('Transfer function')
+    ax[0].legend()
+    plt.rc('grid', linestyle="--", color='black')
 
     # Correlation coefficient: It is a function of `k`, the wavenumber.
     # Get wavenumbers
@@ -223,14 +257,16 @@ def driver(gens, ips, gts):
     corr_gen_gt = np.vstack([correlation_coefficient(im_gen, im_gt)[0] for im_gen, im_gt in zip(gens, ips)]).mean(axis=0)
     corr_ip_gt = np.vstack([correlation_coefficient(im_ip, im_gt)[0] for im_ip, im_gt in zip(ips, gts)]).mean(axis=0)
 
-    ax[2].plot(k, 1 - corr_gen_gt ** 2, label='cGAN generated')
-    ax[2].plot(k, 1 - corr_ip_gt ** 2, label='GR simulation')
-    ax[2].set_yscale('log')
-    ax[2].set_xscale('log')
-    ax[2].set_ylabel('$1 - r(k)^2$')
-    ax[2].set_xlabel('$k [h/Mpc]$')
-    ax[2].set_title('Stochasticity')
-    ax[2].legend()
+    ax[1].plot(k, 1 - corr_gen_gt ** 2, label='cGAN generated', c=gen_gt_color)
+    ax[1].plot(k, 1 - corr_ip_gt ** 2, label='GR simulation', c=ip_gt_color)
+    ax[1].set_yscale('log')
+    ax[1].set_xscale('log')
+    ax[1].set_ylabel('$1 - r(k)^2$')
+    ax[1].set_xlabel('$k [h/Mpc]$')
+    ax[1].set_title('Stochasticity')
+    ax[1].legend()
+    plt.rc('grid', linestyle="--", color='black')
+    plt.grid(True)
 
     plt.show()
 
@@ -245,11 +281,38 @@ def driver(gens, ips, gts):
 #     ax.set_title('Correlation coefficient: cGAN-generated f(R) vs Simulation f(R)')
 #     plt.show()
 
-    del corr_gen_gt, corr_ip_gt
+    del corr_gen_gt, corr_ip_gt, ps_gen, ps_ip, ps_gt
     gc.collect()
 
     # 2. PEAK COUNTS
     func_pc = partial(peak_count, neighborhood_size=5, threshold=0.5)
+
+    pc_gen = np.vstack( [func_pc(im) for im in gens] ).mean(axis=0)
+    pc_ip = np.vstack( [func_pc(im) for im in ips] ).mean(axis=0)
+    pc_gt = np.vstack( [func_pc(im) for im in gts] ).mean(axis=0)
+    fig, ax = plt.subplots(2, 1, figsize=(8, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
+    fig.subplots_adjust(hspace=0)
+
+    sns.kdeplot(pc_gen, ax=ax[0], shade=False, x='pixel value', y=None, color=gen_gt_color)
+    sns.kdeplot(pc_ip, ax=ax[0], shade=False, x='pixel value', y=None, color=ip_gt_color)
+    sns.kdeplot(pc_gt, ax=ax[0], shade=False, x='pixel value', y=None, color='black')
+
+    ax[1].set_xscale('log')
+    ax[1].plot(k, 100 * (pc_gt - pc_gen) / pc_gt, c=gen_gt_color)
+    ax[1].plot(k, 100 * (pc_gt - pc_ip) / pc_gt, c=ip_gt_color)
+    ax[1].plot(k, 100 * (pc_gt - pc_gt) / pc_gt, c='black')
+    ax[1].set_ylabel('Relative difference (%)', fontsize=14)
+    ax[1].set_xlabel('k (h/Mpc)', fontsize=14);
+    ax[1].tick_params(axis='x', labelsize=12)
+    ax[1].tick_params(axis='y', labelsize=12)
+    ax[1].fill_between(k, -25, 25, alpha=0.2)
+    ax[0].set_xlim([k.min(), 15.])
+    ax[1].set_xlim([k.min(), 15.])
+    ax[1].set_ylim([-50, 50])
+    plt.show()
+
+    del pc_gen, pc_ip, pc_gt
+
     pc_gen = np.concatenate( [func_pc(im) for im in gens] )
     pc_ip = np.concatenate( [func_pc(im) for im in ips] )
     pc_gt = np.concatenate( [func_pc(im) for im in gts] )
@@ -262,10 +325,35 @@ def driver(gens, ips, gts):
     gc.collect()
 
     # 3. PIXEL DISTANCE
+    pixel_gen = np.vstack( [func_pc(im) for im in gens] ).mean(axis=0)
+    pixel_ip = np.vstack( [func_pc(im) for im in ips] ).mean(axis=0)
+    pixel_gt = np.vstack( [func_pc(im) for im in gts] ).mean(axis=0)
+    fig, ax = plt.subplots(2, 1, figsize=(8, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
+    fig.subplots_adjust(hspace=0)
+
+    sns.kdeplot(pixel_gen, ax=ax[0], shade=False, x='pixel value', y=None, color=gen_gt_color)
+    sns.kdeplot(pixel_ip, ax=ax[0], shade=False, x='pixel value', y=None, color=ip_gt_color)
+    sns.kdeplot(pixel_gt, ax=ax[0], shade=False, x='pixel value', y=None, color='black')
+
+    ax[1].set_xscale('log')
+    ax[1].plot(k, 100 * (pixel_gt - pixel_gen) / ps_gt, c=gen_gt_color)
+    ax[1].plot(k, 100 * (pixel_gt - pixel_ip) / ps_gt, c=ip_gt_color)
+    ax[1].plot(k, 100 * (pixel_gt - pixel_gt) / ps_gt, c='black')
+    ax[1].set_ylabel('Relative difference (%)', fontsize=14)
+    ax[1].set_xlabel('k (h/Mpc)', fontsize=14);
+    ax[1].tick_params(axis='x', labelsize=12)
+    ax[1].tick_params(axis='y', labelsize=12)
+    ax[1].fill_between(k, -25, 25, alpha=0.2)
+    ax[0].set_xlim([k.min(), 15.])
+    ax[1].set_xlim([k.min(), 15.])
+    ax[1].set_ylim([-50, 50])
+    plt.show()
+
+    del pixel_gen, pixel_ip, pixel_gt
+
     wass_pixel_ip_gen = wasserstein_distance_norm(p=ips, q=gens)
     wass_pixel_gt_gen = wasserstein_distance_norm(p=gts, q=gens)
     print(f'Pixel distances:\n\tbetween input GR and generated f(R): {wass_pixel_ip_gen}\n\tbetween ground_truth f(R) and generated f(R): {wass_pixel_gt_gen}')
-    # TODO: Plot?
 
     # 4. MS-SSIM
     # TODO
