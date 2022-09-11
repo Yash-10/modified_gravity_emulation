@@ -18,7 +18,7 @@ import torch
 from torchmetrics.functional import multiscale_structural_similarity_index_measure
 
 gen_gt_color = '#FC9272'
-ip_gt_color = '#636363'
+ip_gt_color = '#1C9099'
 
 # Power spectrum
 def ps_2d(delta, BoxSize=128):
