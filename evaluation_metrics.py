@@ -107,16 +107,22 @@ def mssim(gen_imgs, gt_imgs):
         gen_imgs (numpy.ndarray): Generated images.
         gt_imgs (numpy.ndarray): Ground-truth images (from simulation).
     Returns:
-        float: The MS-SSIM value.
+        numpy.ndarray: One-dimensional array of MS-SSIM values.
+
     """
+    assert gen_imgs.shape == gt_imgs.shape
+
     _gen_imgs = torch.from_numpy(np.expand_dims(gen_imgs, axis=1))
     _gt_imgs = torch.from_numpy(np.expand_dims(gt_imgs, axis=1))
     # TODO: Ensure shape is as expected.
-    msssim_val = multiscale_structural_similarity_index_measure(
-        _gen_imgs, _gt_imgs,  # Add a dimension for channel to match with torchmetrics expected input.
-        gaussian_kernel=True, sigma=1.5, kernel_size=11
-    ).item()
-    return msssim_val
+    msssim_arr = np.empty(gen_imgs.shape)
+    for i in range(len(gen_imgs)):
+        msssim_val = multiscale_structural_similarity_index_measure(
+            _gen_imgs[i].unsqueeze(0), _gt_imgs[i].unsqueeze(0),  # Add a dimension for channel to match with torchmetrics expected input.
+            gaussian_kernel=True, sigma=1.5, kernel_size=11
+        ).item()
+        msssim_arr[i] = msssim_val
+    return msssim_arr
 
 # Mean density.
 def mean_density(img):
