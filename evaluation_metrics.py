@@ -101,8 +101,30 @@ def peak_count(X, neighborhood_size=5, threshold=0.5):
     return np.extract(maxima, X)
 
 # MS-SSIM
-def mssim(gen_imgs, gt_imgs):
-    """Calculates the MS-SSIM between two sets of images.
+def mssim_single(gen_img, gt_img):
+    """Calculates the MS-SSIM between a sets of images.
+    Args:
+        gen_img (numpy.ndarray): Generated image.
+        gt_img (numpy.ndarray): Ground-truth image (from simulation).
+    Returns:
+        float: MS-SSIM value.
+
+    """
+    assert gen_img.shape == gt_img.shape
+
+    _gen_img = torch.from_numpy(np.expand_dims(gen_img, axis=1))
+    _gt_img = torch.from_numpy(np.expand_dims(gt_img, axis=1))
+    # TODO: Ensure shape is as expected.
+    msssim_val = multiscale_structural_similarity_index_measure(
+        _gen_imgs[i].unsqueeze(0), _gt_imgs[i].unsqueeze(0),  # Add a dimension for channel to match with torchmetrics expected input.
+        gaussian_kernel=True, sigma=1.5, kernel_size=11
+    ).item()
+
+    return msssim_val
+
+# MS-SSIM (multiple)
+def mssim_multiple(gen_imgs, gt_imgs):
+    """Calculates the MS-SSIM between multiple sets of images.
     Args:
         gen_imgs (numpy.ndarray): Generated images.
         gt_imgs (numpy.ndarray): Ground-truth images (from simulation).
@@ -362,10 +384,29 @@ def driver(gens, ips, gts):
     print(f'Pixel distances:\n\tbetween ground truth f(R) and input GR: {wass_pixel_gt_ip}\n\tbetween ground_truth f(R) and generated f(R): {wass_pixel_gt_gen}')
 
     # 4. MS-SSIM
+    def pair_generator(population_size):  # From https://stackoverflow.com/a/50531575
+        pop_range = 2 * population_size
+        population = [i for i in range(1, pop_range + 1)]
+        random.shuffle(population)
+        for _ in range(population_size):
+            yield [population.pop(), population.pop()]
+
+    gen_msssims = []
+    gt_msssims = []
+    for index_pair in pair_generator(len(val_gen)):
+        val = mssim_single(val_gen[index_pair[0]], val_gen[index_pair[1]])
+        gen_msssims.append(val)
+
+        val = mssim_single(val_gt[index_pair[0]], val_gt[index_pair[1]])
+        gt_msssims.append(val)
+
+    significance = (np.mean(gen_msssims) - np.mean(gt_msssims)) / ((np.std(gen_msssims) + np.std(gt_msssims)) / 2)
+    print(f'MS-SSIM significance: {significance}')
+
     # TODO: Use the MS-SSIM idea from https://dl.acm.org/doi/pdf/10.5555/3305890.3305954 instead.
-    mssim_gen_gt = mssim(val_gen, val_gt)
-    mssim_ip_gt = mssim(val_ip, val_gt)
-    print(f'MS-SSIM:\n\tbetween generated f(R) and ground truth f(R): {mssim_gen_gt}\n\tbetween input GR and ground_truth f(R): {mssim_ip_gt}')
+#     mssim_gen_gt = mssim(val_gen, val_gt)
+#     mssim_ip_gt = mssim(val_ip, val_gt)
+#     print(f'MS-SSIM:\n\tbetween generated f(R) and ground truth f(R): {mssim_gen_gt}\n\tbetween input GR and ground_truth f(R): {mssim_ip_gt}')
     # TODO: Plot?
 
     # 5. MEAN DENSITY
