@@ -1,5 +1,6 @@
 # Evaluation functions
 
+import random
 import gc
 from functools import partial
 import numpy as np
@@ -112,11 +113,10 @@ def mssim_single(gen_img, gt_img):
     """
     assert gen_img.shape == gt_img.shape
 
-    _gen_img = torch.from_numpy(np.expand_dims(gen_img, axis=1))
-    _gt_img = torch.from_numpy(np.expand_dims(gt_img, axis=1))
-    # TODO: Ensure shape is as expected.
+    # gen_img, for example, is of shape (512, 512).
+
     msssim_val = multiscale_structural_similarity_index_measure(
-        _gen_imgs[i].unsqueeze(0), _gt_imgs[i].unsqueeze(0),  # Add a dimension for channel to match with torchmetrics expected input.
+        torch.from_numpy(gen_img).unsqueeze(0).unsqueeze(0), torch.from_numpy(gt_img).unsqueeze(0).unsqueeze(0),  # Add a dimension for channel to match with torchmetrics expected input.
         gaussian_kernel=True, sigma=1.5, kernel_size=11
     ).item()
 
@@ -130,6 +130,10 @@ def mssim_multiple(gen_imgs, gt_imgs):
         gt_imgs (numpy.ndarray): Ground-truth images (from simulation).
     Returns:
         numpy.ndarray: One-dimensional array of MS-SSIM values.
+    
+    Note
+    ----
+    TODO: This function is not tested as of now.
 
     """
     assert gen_imgs.shape == gt_imgs.shape
@@ -353,7 +357,7 @@ def driver(gens, ips, gts):
     print(f'Peak count distances:\n\tbetween ground truth f(R) and input GR: {wass_peak_gt_ip}\n\tbetween ground_truth f(R) and generated f(R): {wass_peak_gt_gen}')
     # TODO: Plot?
 
-    del pc_gen, pc_ip, pc_gt, wass_peak_ip_gen, wass_peak_gt_gen
+    del pc_gen, pc_ip, pc_gt, wass_peak_gt_ip, wass_peak_gt_gen
     gc.collect()
 
     # 3. PIXEL DISTANCE
@@ -385,6 +389,7 @@ def driver(gens, ips, gts):
 
     # 4. MS-SSIM
     def pair_generator(population_size):  # From https://stackoverflow.com/a/50531575
+        random.seed(42)
         pop_range = 2 * population_size
         population = [i for i in range(1, pop_range + 1)]
         random.shuffle(population)
@@ -393,20 +398,23 @@ def driver(gens, ips, gts):
 
     gen_msssims = []
     gt_msssims = []
-    for index_pair in pair_generator(len(val_gen)):
-        val = mssim_single(val_gen[index_pair[0]], val_gen[index_pair[1]])
+    ip_msssims = []
+
+    for index_pair in pair_generator(int(len(gens)/2) - 1):
+        i1, i2 = index_pair[0], index_pair[1]
+        val = mssim_single(gens[i1], gens[i2])
         gen_msssims.append(val)
 
-        val = mssim_single(val_gt[index_pair[0]], val_gt[index_pair[1]])
+        val = mssim_single(gts[i1], gts[i2])
         gt_msssims.append(val)
 
-    significance = (np.mean(gen_msssims) - np.mean(gt_msssims)) / ((np.std(gen_msssims) + np.std(gt_msssims)) / 2)
-    print(f'MS-SSIM significance: {significance}')
+        val = mssim_single(ips[i1], ips[i2])
+        ip_msssims.append(val)
 
-    # TODO: Use the MS-SSIM idea from https://dl.acm.org/doi/pdf/10.5555/3305890.3305954 instead.
-#     mssim_gen_gt = mssim(val_gen, val_gt)
-#     mssim_ip_gt = mssim(val_ip, val_gt)
-#     print(f'MS-SSIM:\n\tbetween generated f(R) and ground truth f(R): {mssim_gen_gt}\n\tbetween input GR and ground_truth f(R): {mssim_ip_gt}')
+    gen_gt_significance = (np.mean(gen_msssims) - np.mean(gt_msssims)) / ((np.std(gen_msssims) + np.std(gt_msssims)) / 2)
+    ip_gt_significance = (np.mean(ip_msssims) - np.mean(gt_msssims)) / ((np.std(ip_msssims) + np.std(gt_msssims)) / 2)
+    print(f'MS-SSIM significance:\n\tbetween cGAN generated and ground truth f(R): {gen_gt_significance}\n\tbetween input GR and ground truth f(R): {ip_gt_significance}')
+
     # TODO: Plot?
 
     # 5. MEAN DENSITY
@@ -419,7 +427,7 @@ def driver(gens, ips, gts):
 
     plot_density(mean_den_gen, mean_den_ip, mean_den_gt)
 
-    del mean_den_gen, mean_den_ip, mean_den_gt
+    del mean_den_gen, mean_den_ip, mean_den_gt, wass_meanden_gt_ip, wass_meanden_gt_gen
     gc.collect()
 
     # 6. MEDIAN DENSITY
@@ -428,9 +436,9 @@ def driver(gens, ips, gts):
     median_den_gt = np.array([median_density(im) for im in gts])
     wass_medianden_gt_ip = wasserstein_distance_norm(p=median_den_gt, q=median_den_ip)
     wass_medianden_gt_gen = wasserstein_distance_norm(p=median_den_gt, q=median_den_gen)
-    print(f'Median density distances:\n\tbetween ground truth f(R) and input GR: {wass_medianden_ip_gen}\n\tbetween ground_truth f(R) and generated f(R): {wass_medianden_gt_gen}')
+    print(f'Median density distances:\n\tbetween ground truth f(R) and input GR: {wass_medianden_gt_ip}\n\tbetween ground_truth f(R) and generated f(R): {wass_medianden_gt_gen}')
 
     plot_density(median_den_gen, median_den_ip, median_den_gt)
 
-    del median_den_gen, median_den_ip, median_den_gt
+    del median_den_gen, median_den_ip, median_den_gt, wass_medianden_gt_ip, wass_medianden_gt_gen
     gc.collect()
