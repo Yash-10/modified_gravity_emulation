@@ -388,6 +388,8 @@ def driver(gens, ips, gts):
     print(f'Pixel distances:\n\tbetween ground truth f(R) and input GR: {wass_pixel_gt_ip}\n\tbetween ground_truth f(R) and generated f(R): {wass_pixel_gt_gen}')
 
     # 4. MS-SSIM
+    # Some motivation for the idea: https://dl.acm.org/doi/pdf/10.5555/3305890.3305954
+    # Specific approach motivated from https://arxiv.org/pdf/2004.08139.pdf
     def pair_generator(population_size):  # From https://stackoverflow.com/a/50531575
         random.seed(42)
         pop_range = 2 * population_size
