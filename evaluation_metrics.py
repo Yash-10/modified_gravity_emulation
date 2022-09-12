@@ -22,15 +22,17 @@ ip_gt_color = '#1C9099'
 
 # Power spectrum
 def ps_2d(delta, BoxSize=128):
-    """Calculates the 2D power spectrum of a density field.
+    """Calculates the 2D power spectrum of a density field. It internally calculates the density contrast field and then calculates the power spectrum.
+
     Args:
-        delta (numpy.ndarray): Density slice.
+        delta (numpy.ndarray): Density slice (note: this is the density field rather than density contrast).
         BoxSize (float): Simulation box size.
     Returns:
         (numpy.ndarray, numpy.ndarray): The wavenumbers and power spectrum amplitudes.
     """
-    # TODO: Use density contrast instead of density??
     delta = delta.astype(np.float32)
+    # Calculate density contrast.
+    delta /= np.mean(delta, dtype=np.float64);  delta -= 1.0
 
     MAS = 'None'
     threads = 2
