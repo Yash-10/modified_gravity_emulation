@@ -362,6 +362,7 @@ def driver(gens, ips, gts):
     print(f'Pixel distances:\n\tbetween ground truth f(R) and input GR: {wass_pixel_gt_ip}\n\tbetween ground_truth f(R) and generated f(R): {wass_pixel_gt_gen}')
 
     # 4. MS-SSIM
+    # TODO: Use the MS-SSIM idea from https://dl.acm.org/doi/pdf/10.5555/3305890.3305954 instead.
     mssim_gen_gt = mssim(val_gen, val_gt)
     mssim_ip_gt = mssim(val_ip, val_gt)
     print(f'MS-SSIM:\n\tbetween generated f(R) and ground truth f(R): {mssim_gen_gt}\n\tbetween input GR and ground_truth f(R): {mssim_ip_gt}')
