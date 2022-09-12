@@ -326,9 +326,9 @@ def driver(gens, ips, gts):
     pc_gen = np.concatenate( [func_pc(im) for im in gens] )
     pc_ip = np.concatenate( [func_pc(im) for im in ips] )
     pc_gt = np.concatenate( [func_pc(im) for im in gts] )
-    wass_peak_ip_gen = wasserstein_distance_norm(p=pc_ip, q=pc_gen)
+    wass_peak_gt_ip = wasserstein_distance_norm(p=pc_gt, q=pc_ip)
     wass_peak_gt_gen = wasserstein_distance_norm(p=pc_gt, q=pc_gen)
-    print(f'Peak count distances:\n\tbetween input GR and generated f(R): {wass_peak_ip_gen}\n\tbetween ground_truth f(R) and generated f(R): {wass_peak_gt_gen}')
+    print(f'Peak count distances:\n\tbetween ground truth f(R) and input GR: {wass_peak_gt_ip}\n\tbetween ground_truth f(R) and generated f(R): {wass_peak_gt_gen}')
     # TODO: Plot?
 
     del pc_gen, pc_ip, pc_gt, wass_peak_ip_gen, wass_peak_gt_gen
@@ -357,24 +357,23 @@ def driver(gens, ips, gts):
 
 #     del pixel_gen, pixel_ip, pixel_gt
 
-    wass_pixel_ip_gen = wasserstein_distance_norm(p=ips, q=gens)
+    wass_pixel_gt_ip = wasserstein_distance_norm(p=gts, q=ips)
     wass_pixel_gt_gen = wasserstein_distance_norm(p=gts, q=gens)
-    print(f'Pixel distances:\n\tbetween input GR and generated f(R): {wass_pixel_ip_gen}\n\tbetween ground_truth f(R) and generated f(R): {wass_pixel_gt_gen}')
+    print(f'Pixel distances:\n\tbetween ground truth f(R) and input GR: {wass_pixel_gt_ip}\n\tbetween ground_truth f(R) and generated f(R): {wass_pixel_gt_gen}')
 
     # 4. MS-SSIM
-    # TODO
-    # mssim_ip_gen = mssim(val_gen, val_ip)
-    # mssim_gt_gen = mssim(val_gen, val_gt)
-    # print(f'MS-SSIM:\n\tbetween generated f(R) and input GR: {mssim_ip_gen}\n\tbetween generated f(R) and ground_truth f(R): {mssim_gt_gen}')
+    mssim_gen_gt = mssim(val_gen, val_gt)
+    mssim_ip_gt = mssim(val_ip, val_gt)
+    print(f'MS-SSIM:\n\tbetween generated f(R) and ground truth f(R): {mssim_gen_gt}\n\tbetween input GR and ground_truth f(R): {mssim_ip_gt}')
     # TODO: Plot?
 
     # 5. MEAN DENSITY
     mean_den_gen = np.array([mean_density(im) for im in gens])
     mean_den_ip = np.array([mean_density(im) for im in ips])
     mean_den_gt = np.array([mean_density(im) for im in gts])
-    wass_meanden_ip_gen = wasserstein_distance_norm(p=mean_den_ip, q=mean_den_gen)
+    wass_meanden_gt_ip = wasserstein_distance_norm(p=mean_den_gt, q=mean_den_ip)
     wass_meanden_gt_gen = wasserstein_distance_norm(p=mean_den_gt, q=mean_den_gen)
-    print(f'Mean density distances:\n\tbetween input GR and generated f(R): {wass_meanden_ip_gen}\n\tbetween ground_truth f(R) and generated f(R): {wass_meanden_gt_gen}')
+    print(f'Mean density distances:\n\tbetween ground truth f(R) and input GR: {wass_meanden_gt_ip}\n\tbetween ground_truth f(R) and generated f(R): {wass_meanden_gt_gen}')
 
     plot_density(mean_den_gen, mean_den_ip, mean_den_gt)
 
@@ -385,9 +384,9 @@ def driver(gens, ips, gts):
     median_den_gen = np.array([median_density(im) for im in gens])
     median_den_ip = np.array([median_density(im) for im in ips])
     median_den_gt = np.array([median_density(im) for im in gts])
-    wass_medianden_ip_gen = wasserstein_distance_norm(p=median_den_ip, q=median_den_gen)
+    wass_medianden_gt_ip = wasserstein_distance_norm(p=median_den_gt, q=median_den_ip)
     wass_medianden_gt_gen = wasserstein_distance_norm(p=median_den_gt, q=median_den_gen)
-    print(f'Median density distances:\n\tbetween input GR and generated f(R): {wass_medianden_ip_gen}\n\tbetween ground_truth f(R) and generated f(R): {wass_medianden_gt_gen}')
+    print(f'Median density distances:\n\tbetween ground truth f(R) and input GR: {wass_medianden_ip_gen}\n\tbetween ground_truth f(R) and generated f(R): {wass_medianden_gt_gen}')
 
     plot_density(median_den_gen, median_den_ip, median_den_gt)
 
