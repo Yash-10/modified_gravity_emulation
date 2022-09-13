@@ -215,14 +215,17 @@ def transfer_function(ps_pred, ps_true):
 #     ax.set_xticklabels(k)
 #     plt.show()
 
-def plot_density(den_gen, den_ip, den_gt):
+def plot_density(den_gen, den_ip, den_gt, plotting_mean=True):  # plotting_mean is only used for setting the plot title. If False, it is assumed we are plotting the median density.
     plt.rcParams['figure.figsize'] = [8, 6]
     fig, ax = plt.subplots(2, 1, figsize=(8, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
     fig.subplots_adjust(hspace=0)
     sns.kdeplot(den_gen, ax=ax[0], shade=False, x='cosmological density', y=None, color=gen_gt_color)
     sns.kdeplot(den_ip, ax=ax[0], shade=False, c=ip_gt_color)
     sns.kdeplot(den_gt, ax=ax[0], shade=False, c='black')
-    ax[0].set_title('Cosmological density distribution')
+    if plotting_mean:
+        ax[0].set_title('Cosmological mean density distribution')
+    else:
+        ax[0].set_title('Cosmological median density distribution')
     ax[0].set_xlabel('Cosmological density')
     handles = [
             mpatches.Patch(facecolor=gen_gt_color, label="cGAN generated"),
@@ -427,7 +430,7 @@ def driver(gens, ips, gts):
     wass_meanden_gt_gen = wasserstein_distance_norm(p=mean_den_gt, q=mean_den_gen)
     print(f'Mean density distances:\n\tbetween ground truth f(R) and input GR: {wass_meanden_gt_ip}\n\tbetween ground_truth f(R) and generated f(R): {wass_meanden_gt_gen}')
 
-    plot_density(mean_den_gen, mean_den_ip, mean_den_gt)
+    plot_density(mean_den_gen, mean_den_ip, mean_den_gt, plotting_mean=True)
 
     del mean_den_gen, mean_den_ip, mean_den_gt, wass_meanden_gt_ip, wass_meanden_gt_gen
     gc.collect()
@@ -440,7 +443,7 @@ def driver(gens, ips, gts):
     wass_medianden_gt_gen = wasserstein_distance_norm(p=median_den_gt, q=median_den_gen)
     print(f'Median density distances:\n\tbetween ground truth f(R) and input GR: {wass_medianden_gt_ip}\n\tbetween ground_truth f(R) and generated f(R): {wass_medianden_gt_gen}')
 
-    plot_density(median_den_gen, median_den_ip, median_den_gt)
+    plot_density(median_den_gen, median_den_ip, median_den_gt, plotting_mean=False)
 
     del median_den_gen, median_den_ip, median_den_gt, wass_medianden_gt_ip, wass_medianden_gt_gen
     gc.collect()
