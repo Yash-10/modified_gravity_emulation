@@ -391,15 +391,15 @@ def driver(gens, ips, gts):
     ####################################################################################################################################################################################
     wass_pixel_gt_ips = []
     wass_pixel_gt_gens = []
-    for index in [0, 100, 200, 300, 400]:
+    for index in [0, 50, 100, 150, 200, 250, 300, 350, 400]:
         if index == 400:
             assert len(gts[index:]) == 61
             wass_pixel_gt_ip = wasserstein_distance_norm(p=gts[index:], q=ips[index:])
             wass_pixel_gt_gen = wasserstein_distance_norm(p=gts[index:], q=gens[index:])
         else:
-            assert len(gts[index:index+100]) == 100
-            wass_pixel_gt_ip = wasserstein_distance_norm(p=gts[index:index+100], q=ips[index:index+100])
-            wass_pixel_gt_gen = wasserstein_distance_norm(p=gts[index:index+100], q=gens[index:index+100])
+            assert len(gts[index:index+50]) == 50
+            wass_pixel_gt_ip = wasserstein_distance_norm(p=gts[index:index+50], q=ips[index:index+50])
+            wass_pixel_gt_gen = wasserstein_distance_norm(p=gts[index:index+50], q=gens[index:index+50])
 
         wass_pixel_gt_ips.append(wass_pixel_gt_ip)
         wass_pixel_gt_gens.append(wass_pixel_gt_gen)
