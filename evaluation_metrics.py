@@ -402,7 +402,7 @@ def driver(gens, ips, gts):
             wass_pixel_gt_gen = wasserstein_distance_norm(p=gts[index:index+100], q=gens[index:index+100])
 
         wass_pixel_gt_ips.append(wass_pixel_gt_ip)
-        wass_pixel_gt_gens.append(wass_pixel_gt_gens)
+        wass_pixel_gt_gens.append(wass_pixel_gt_gen)
 
     mean_wass_pixel_gt_ip = np.mean(wass_pixel_gt_ips)
     mean_wass_pixel_gt_gen = np.mean(wass_pixel_gt_gens)
