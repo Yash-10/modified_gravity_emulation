@@ -386,9 +386,28 @@ def driver(gens, ips, gts):
 
 #     del pixel_gen, pixel_ip, pixel_gt
 
-    wass_pixel_gt_ip = wasserstein_distance_norm(p=gts, q=ips)
-    wass_pixel_gt_gen = wasserstein_distance_norm(p=gts, q=gens)
-    print(f'Pixel distances:\n\tbetween ground truth f(R) and input GR: {wass_pixel_gt_ip}\n\tbetween ground_truth f(R) and generated f(R): {wass_pixel_gt_gen}')
+    ####################################################################################################################################################################################
+    ### The reason why evaluate distance on chunks of images rather than all images is because all images do not fit into memory due to which the RAM (~13 GB in Kaggle kernel) blows up.
+    ####################################################################################################################################################################################
+    wass_pixel_gt_ips = []
+    wass_pixel_gt_gens = []
+    for index in [0, 100, 200, 300, 400]:
+        if index == 400:
+            assert len(gts[index:]) == 61
+            wass_pixel_gt_ip = wasserstein_distance_norm(p=gts[index:], q=ips[index:])
+            wass_pixel_gt_gen = wasserstein_distance_norm(p=gts[index:], q=gens[index:])
+        else:
+            assert len(gts[index:index+100]) == 100
+            wass_pixel_gt_ip = wasserstein_distance_norm(p=gts[index:index+100], q=ips[index:index+100])
+            wass_pixel_gt_gen = wasserstein_distance_norm(p=gts[index:index+100], q=gens[index:index+100])
+
+        wass_pixel_gt_ips.append(wass_pixel_gt_ip)
+        wass_pixel_gt_gens.append(wass_pixel_gt_gens)
+
+    mean_wass_pixel_gt_ip = np.mean(wass_pixel_gt_ips)
+    mean_wass_pixel_gt_gen = np.mean(wass_pixel_gt_gens)
+
+    print(f'Pixel distances:\n\tbetween ground truth f(R) and input GR: {mean_wass_pixel_gt_ip}\n\tbetween ground_truth f(R) and generated f(R): {mean_wass_pixel_gt_gen}')
 
     # 4. MS-SSIM
     # Some motivation for the idea: https://dl.acm.org/doi/pdf/10.5555/3305890.3305954
