@@ -1,5 +1,7 @@
 # Evaluation functions
 
+import os
+import contextlib
 import random
 import gc
 from functools import partial
@@ -256,9 +258,10 @@ def driver(gens, ips, gts):
     ########################  Run evaluation metrics  ########################
     # 1. AVERAGED POWER SPECTRUM, TRANSFER FUNCTION, AND CORRELATION COEFFICIENT
     k = ps_2d(gens[0])[0]
-    ps_gen = np.vstack([ps_2d(im)[1] for im in gens]).mean(axis=0)
-    ps_ip = np.vstack([ps_2d(im)[1] for im in ips]).mean(axis=0)
-    ps_gt = np.vstack([ps_2d(im)[1] for im in gts]).mean(axis=0)
+    with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
+        ps_gen = np.vstack([ps_2d(im)[1] for im in gens]).mean(axis=0)
+        ps_ip = np.vstack([ps_2d(im)[1] for im in ips]).mean(axis=0)
+        ps_gt = np.vstack([ps_2d(im)[1] for im in gts]).mean(axis=0)
 
     fig, ax = plt.subplots(2, 1, figsize=(8, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
     fig.subplots_adjust(hspace=0)
@@ -298,9 +301,10 @@ def driver(gens, ips, gts):
 
     # Correlation coefficient: It is a function of `k`, the wavenumber.
     # Get wavenumbers
-    k = correlation_coefficient(gens[0], ips[0])[1]
-    corr_gen_gt = np.vstack([correlation_coefficient(im_gen, im_gt)[0] for im_gen, im_gt in zip(gens, ips)]).mean(axis=0)
-    corr_ip_gt = np.vstack([correlation_coefficient(im_ip, im_gt)[0] for im_ip, im_gt in zip(ips, gts)]).mean(axis=0)
+    with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
+        k = correlation_coefficient(gens[0], ips[0])[1]
+        corr_gen_gt = np.vstack([correlation_coefficient(im_gen, im_gt)[0] for im_gen, im_gt in zip(gens, ips)]).mean(axis=0)
+        corr_ip_gt = np.vstack([correlation_coefficient(im_ip, im_gt)[0] for im_ip, im_gt in zip(ips, gts)]).mean(axis=0)
 
     ax[1].plot(k, 1 - corr_gen_gt ** 2, label='cGAN generated', c=gen_gt_color)
     ax[1].plot(k, 1 - corr_ip_gt ** 2, label='GR simulation', c=ip_gt_color)
