@@ -257,8 +257,8 @@ def driver(gens, ips, gts):
 
     ########################  Run evaluation metrics  ########################
     # 1. AVERAGED POWER SPECTRUM, TRANSFER FUNCTION, AND CORRELATION COEFFICIENT
-    k = ps_2d(gens[0])[0]
-    with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
+    with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):  # Prevent unnecessary verbose output from printing on screen.
+        k = ps_2d(gens[0])[0]
         ps_gen = np.vstack([ps_2d(im)[1] for im in gens]).mean(axis=0)
         ps_ip = np.vstack([ps_2d(im)[1] for im in ips]).mean(axis=0)
         ps_gt = np.vstack([ps_2d(im)[1] for im in gts]).mean(axis=0)
