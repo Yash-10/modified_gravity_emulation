@@ -3,6 +3,22 @@ from .base_model import BaseModel
 from . import networks
 
 
+class WeightedL1Loss(nn.Module):
+    def __init__(self):
+        super(WeightedL1Loss, self).__init__()
+
+    def forward(self, weight, fake, real):
+        """
+        :param real: real_img
+        :param fake: fake_img
+        :param weight:
+        :return:
+        """
+        out1 = torch.abs(real - fake)
+        out1 = out1 * weight
+        loss = out1.mean()
+        return loss
+
 class Pix2PixModel(BaseModel):
     """ This class implements the pix2pix model, for learning a mapping from input images to output images given paired data.
 
@@ -63,7 +79,10 @@ class Pix2PixModel(BaseModel):
         if self.isTrain:
             # define loss functions
             self.criterionGAN = networks.GANLoss(opt.gan_mode).to(self.device)
-            self.criterionL1 = torch.nn.L1Loss()
+            if self.opt.use_weighted_L1:
+                self.criterionL1 = WeightedL1Loss()
+            else:
+                self.criterionL1 = torch.nn.L1Loss()
             # initialize optimizers; schedulers will be automatically created by function <BaseModel.setup>.
             self.optimizer_G = torch.optim.Adam(self.netG.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
             self.optimizer_D = torch.optim.Adam(self.netD.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
@@ -108,7 +127,12 @@ class Pix2PixModel(BaseModel):
         pred_fake = self.netD(fake_AB)
         self.loss_G_GAN = self.criterionGAN(pred_fake, True)
         # Second, G(A) = B
-        self.loss_G_L1 = self.criterionL1(self.fake_B, self.real_B) * self.opt.lambda_L1
+        if self.opt.use_weighted_L1:
+            difference = torch.abs(self.real_A - self.real_B)
+            weight = difference / max(difference)
+            self.loss_G_L1 = self.criterionL1(weight, self.fake_B, self.real_B) * self.opt.lambda_L1
+        else:
+            self.loss_G_L1 = self.criterionL1(self.fake_B, self.real_B) * self.opt.lambda_L1
         # combine loss and calculate gradients
         self.loss_G = self.loss_G_GAN + self.loss_G_L1
         self.loss_G.backward()
