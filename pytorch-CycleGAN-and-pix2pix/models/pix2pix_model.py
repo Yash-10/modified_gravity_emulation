@@ -3,7 +3,7 @@ from .base_model import BaseModel
 from . import networks
 
 
-class WeightedL1Loss(nn.Module):
+class WeightedL1Loss(torch.nn.Module):
     def __init__(self):
         super(WeightedL1Loss, self).__init__()
 
