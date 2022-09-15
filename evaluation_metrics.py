@@ -218,6 +218,8 @@ def transfer_function(ps_pred, ps_true):
 #     plt.show()
 
 def plot_density(den_gen, den_ip, den_gt, plotting_mean=True):  # plotting_mean is only used for setting the plot title. If False, it is assumed we are plotting the median density.
+    # Note that the KDE plots, similar to histograms, are trying to approximate the PDF that generated the values shown in the plot.
+    # See more here: https://seaborn.pydata.org/tutorial/distributions.html#tutorial-kde
     plt.rcParams['figure.figsize'] = [8, 6]
     fig, ax = plt.subplots(2, 1, figsize=(8, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
     fig.subplots_adjust(hspace=0)
@@ -228,7 +230,7 @@ def plot_density(den_gen, den_ip, den_gt, plotting_mean=True):  # plotting_mean 
         ax[0].set_title('Cosmological mean density distribution')
     else:
         ax[0].set_title('Cosmological median density distribution')
-    ax[0].set_xlabel('Cosmological density')
+    ax[0].set_ylabel('$N_{pixels}$')
     handles = [
             mpatches.Patch(facecolor=gen_gt_color, label="cGAN generated"),
             mpatches.Patch(facecolor=ip_gt_color, label="GR simulation"),
@@ -241,7 +243,7 @@ def plot_density(den_gen, den_ip, den_gt, plotting_mean=True):  # plotting_mean 
     ax[1].plot(100 * (den_gt - den_ip) / den_gt, c=ip_gt_color)
     ax[1].axhline(y=0, linestyle='--', c='black')
     ax[1].set_ylabel('Relative difference (%)', fontsize=14)
-    ax[1].set_xlabel('k (h/Mpc)', fontsize=14);
+    ax[1].set_xlabel('pixel value (cosmological density)', fontsize=14);
     ax[1].tick_params(axis='x', labelsize=12)
     ax[1].tick_params(axis='y', labelsize=12)
     plt.show()
