@@ -81,6 +81,9 @@ class Pix2PixModel(BaseModel):
             self.criterionGAN = networks.GANLoss(opt.gan_mode).to(self.device)
             if opt.use_weighted_L1:
                 self.criterionL1 = WeightedL1Loss()
+            elif opt.use_msssim_l1:
+                from MS_SSIM_L1_loss import MS_SSIM_L1_LOSS
+                self.criterionL1 = MS_SSIM_L1_LOSS(data_range=2., alpha=0.84)  # alpha taken from https://arxiv.org/pdf/1511.08861.pdf
             else:
                 self.criterionL1 = torch.nn.L1Loss()
             # initialize optimizers; schedulers will be automatically created by function <BaseModel.setup>.
