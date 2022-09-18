@@ -37,6 +37,7 @@ class TrainOptions(BaseOptions):
         parser.add_argument('--lr_decay_iters', type=int, default=50, help='multiply by a gamma every lr_decay_iters iterations')
         # Newly added argument
         parser.add_argument('--use_weighted_L1', action='store_true', help='whether to use weighted L1 loss function.')
+        parser.add_argument('--use_msssim_l1', action='store_true', help='whether to use MSSSIM+L1 loss function.')
 
         self.isTrain = True
         return parser
