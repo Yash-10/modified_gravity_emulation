@@ -136,7 +136,7 @@ class Pix2PixModel(BaseModel):
             weight[weight > median_weight] = 1.
             weight[weight <= median_weight] = 0.5
             self.loss_G_L1 = self.criterionL1(weight, self.fake_B, self.real_B) * self.opt.lambda_L1
-        elif opt.use_msssim_l1:
+        elif self.opt.use_msssim_l1:
             self.loss_G_L1 = self.criterionL1(self.fake_B, self.real_B) * self.opt.lambda_L1
         else:
             self.loss_G_L1 = self.criterionL1(self.fake_B, self.real_B) * self.opt.lambda_L1
