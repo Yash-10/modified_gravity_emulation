@@ -46,6 +46,25 @@ def ps_2d(delta, BoxSize=128):
 #     Nmodes = Pk2D2.Nmodes #Number of modes in the different k bins
     return k2, Pk2
 
+def chiq_squared_dist_ps(ps, ps_expected):
+    """Calculate chi-squared distance between power spectra.
+
+    Args:
+        ps (numpy.ndarray): Calculated (or observed) power spectrum.
+        ps_expected (numpy.ndarray): Ground-truth (or expected) power spectrum.
+
+    Returns:
+        float: Chi-square distance
+    
+    Notes
+    -----
+    See, for example, http://www.cs.columbia.edu/~mmerler/project/code/pdist2.m
+
+    """
+    return 0.5 * np.sum((ps-ps_expected)**2 / (ps+ps_expected))
+
+assert np.allclose(chiq_squared_dist_ps(np.ones(10), np.ones(10)), 0.0)
+
 # Wasserstein distance.
 # Code taken from https://renkulab.io/gitlab/nathanael.perraudin/darkmattergan/-/blob/master/cosmotools/metric/evaluation.py
 def wasserstein_distance_norm(p, q):
