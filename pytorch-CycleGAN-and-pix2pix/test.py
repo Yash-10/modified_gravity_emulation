@@ -51,6 +51,9 @@ if __name__ == '__main__':
     model = create_model(opt)      # create a model given opt.model and other options
     model.setup(opt)               # regular setup: load and print networks; create schedulers
 
+#     wandb.init(project='ml_mg_pix2pix')
+#     wandb.config.update(opt)  # adds all of the arguments as config variables
+
     # initialize logger
     if opt.use_wandb:
         wandb_run = wandb.init(project='CycleGAN-and-pix2pix', name=opt.name, config=opt) if not wandb.run else wandb.run
