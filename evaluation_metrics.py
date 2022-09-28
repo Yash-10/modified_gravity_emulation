@@ -349,6 +349,11 @@ def driver(gens, ips, gts):
 #     ax.set_title('Correlation coefficient: cGAN-generated f(R) vs Simulation f(R)')
 #     plt.show()
 
+    # Print chi-squared distance between averaged power spectra.
+    chisquare_ip_gt = chiq_squared_dist_ps(ps_ip, ps_gt)
+    chisquare_gen_gt = chiq_squared_dist_ps(ps_gen, ps_gt)
+    print(f'Chi-squared distance between averaged power spectra:\n\tbetween ground-truth f(R) and input GR: {chisquare_ip_gt}\n\tbetween ground-truth f(R) and generated f(R): {chisquare_gen_gt}')
+
     del corr_gen_gt, corr_ip_gt, ps_gen, ps_ip, ps_gt
     gc.collect()
 
