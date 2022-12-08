@@ -308,6 +308,7 @@ def driver(gens, ips, gts):
     ax[0].set_xlim([k.min(), 15.])
     ax[1].set_xlim([k.min(), 15.])
     ax[1].set_ylim([-100, 100])
+    ax[1].set_xticks(np.arange(-100, +100, 25))
 
     #### Repeat the relative difference plot as above but taking input GR as reference ####
     fig, ax = plt.subplots(1, 1, figsize=(8, 4))
