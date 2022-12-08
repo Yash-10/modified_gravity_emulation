@@ -297,8 +297,8 @@ def driver(gens, ips, gts):
     ax[0].tick_params(axis='y', labelsize=12)
 
     ax[1].set_xscale('log')
-    ax[1].plot(k, 100 * (ps_gt - ps_gen) / ps_gt, c=gen_gt_color)
-    ax[1].plot(k, 100 * (ps_gt - ps_ip) / ps_gt, c=ip_gt_color)
+    ax[1].plot(k, 100 * (ps_gen - ps_gt) / ps_gt, c=gen_gt_color)
+    ax[1].plot(k, 100 * (ps_ip - ps_gt) / ps_gt, c=ip_gt_color)
     ax[1].axhline(y=0, c='black', linestyle='--')
     ax[1].set_ylabel('Relative difference (%)', fontsize=14)
     ax[1].set_xlabel('k (h/Mpc)', fontsize=14);
@@ -307,15 +307,15 @@ def driver(gens, ips, gts):
     ax[1].fill_between(k, -25, 25, alpha=0.2)
     ax[0].set_xlim([k.min(), 15.])
     ax[1].set_xlim([k.min(), 15.])
-    ax[1].set_ylim([-50, 50])
+    ax[1].set_ylim([-100, 100])
 
     #### Repeat the relative difference plot as above but taking input GR as reference ####
     fig, ax = plt.subplots(1, 1, figsize=(8, 4))
     fig.subplots_adjust(hspace=0)
 
     ax.set_xscale('log')
-    ax.plot(k, 100 * (ps_ip - ps_gen) / ps_ip, c=ip_gen_color, label='cGAN generated')
-    ax.plot(k, 100 * (ps_ip - ps_gt) / ps_ip, c=ip_gt_color, label='f(R) simulation')
+    ax.plot(k, 100 * (ps_gen - ps_ip) / ps_ip, c=ip_gen_color, label='cGAN generated')
+    ax.plot(k, 100 * (ps_gt - ps_ip) / ps_ip, c=ip_gt_color, label='f(R) simulation')
     ax.axhline(y=0, c='black', linestyle='--')
     ax.set_ylabel('Relative difference (%)', fontsize=14)
     ax.set_xlabel('k (h/Mpc)', fontsize=14);
@@ -324,7 +324,7 @@ def driver(gens, ips, gts):
     ax.fill_between(k, -25, 25, alpha=0.2)
     ax.set_xlim([k.min(), 15.])
     ax.set_xlim([k.min(), 15.])
-    ax.set_ylim([-50, 50])
+    ax.set_ylim([-100, 100])
     ax.set_title('Reference is GR simulation')
     ax.legend()
     #######################################################################################
