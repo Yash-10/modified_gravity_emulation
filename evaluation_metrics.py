@@ -308,7 +308,7 @@ def driver(gens, ips, gts):
     ax[0].set_xlim([k.min(), 15.])
     ax[1].set_xlim([k.min(), 15.])
     ax[1].set_ylim([-100, 100])
-    ax[1].set_xticks(np.arange(-100, +100, 25))
+    ax[1].set_yticks(np.arange(-100, +100, 25))
 
     #### Repeat the relative difference plot as above but taking input GR as reference ####
     fig, ax = plt.subplots(1, 1, figsize=(8, 4))
@@ -328,6 +328,7 @@ def driver(gens, ips, gts):
     ax.set_ylim([-100, 100])
     ax.set_title('Reference is GR simulation')
     ax.legend()
+    ax.set_yticks(np.arange(-100, +100, 25))
     #######################################################################################
 
     # Now plot transfer function and stochasticity.
