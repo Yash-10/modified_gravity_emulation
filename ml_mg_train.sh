@@ -2,7 +2,7 @@
 
 #SBATCH --ntasks 1
 #SBATCH --cpus-per-task=2
-#SBATCH -J ml_mg_trial1
+#SBATCH -J ml_mg_f5
 #SBATCH -o standard_output_file.%J.out
 #SBATCH -e standard_error_file.%J.err
 #SBATCH -p cosma8-shm
@@ -29,7 +29,7 @@ ls /cosma5/data/durham/dc-gond1/official_pix2pix_data/train | wc -l
 ls /cosma5/data/durham/dc-gond1/official_pix2pix_data/val | wc -l
 ls /cosma5/data/durham/dc-gond1/official_pix2pix_data/test | wc -l
 
-python3 train.py --dataset_mode aligned --dataroot /cosma5/data/durham/dc-gond1/official_pix2pix_data --name pix2pix_F4n1_GR --model pix2pix --direction AtoB \
-	                  --batch_size 1 --input_nc 1 --output_nc 1 --lambda_L1 200 --netG unet_512 --load_size 542 --crop_size 512 --num_threads=2 --norm instance \
-					                    --display_id 0 --n_epochs 100 --lr 2e-4 --n_epochs_decay 100 --save_latest_freq 737200 --save_epoch_freq 10 --netD n_layers --n_layers_D 4 \
-										                  --ndf 64 --ngf 128 --display_freq 10000000
+python3 train.py --dataset_mode aligned --dataroot /cosma5/data/durham/dc-gond1/official_pix2pix_data_F5n1_GR --name pix2pix_F5n1_GR --model pix2pix --direction AtoB \
+                      --batch_size 1 --input_nc 1 --output_nc 1 --lambda_L1 200 --netG unet_512 --load_size 542 --crop_size 512 --num_threads=2 --norm instance \
+                                        --display_id 0 --n_epochs 300 --lr 2e-4 --save_latest_freq 147440 --save_epoch_freq 10 --netD n_layers --n_layers_D 4 \
+                                                          --ndf 64 --ngf 128 --display_freq 10000000 --lr_policy cosine
