@@ -78,21 +78,28 @@ def get_params(opt, size):
 
     return {'crop_pos': (x, y), 'flip': flip}
 
-############ Below function copied and pasted from https://github.com/nperraud/3DcosmoGAN/ ###########
+############ Below function (`andres_forward`) copied and pasted from https://github.com/nperraud/3DcosmoGAN/ ###########
 def andres_forward(x, shift=20., scale=1.):
     """Map real positive numbers to a [-scale, scale] range.
     Numpy version
     """
     return scale * (2 * (x / (x + 1 + shift)) - 1)
 
+def veldiv_forward(x):
+    """Simple tanh transformation to restrict the range to [-1, +1]."""
+    return np.tanh(x)
+
 class CustomPixelTransformation(object):
-    def __call__(self, img):
+    def __call__(self, img, field_type='den'):
         """
         :param img: torch tensor
 
         :return: torch tensor - transformed image
         """
-        return andres_forward(img, scale=1., shift=1)  # only keep changing `shift` during experimentation.
+        if field_type == 'den':
+            return andres_forward(img, scale=1., shift=1)  # only keep changing `shift` during experimentation.
+        elif field_type == 'veldiv':
+            return veldiv_forward(img)
 
     def __repr__(self):
         return self.__class__.__name__+'()'
@@ -101,7 +108,7 @@ def get_transform(opt, params=None, grayscale=False, method=transforms.Interpola
     transform_list = []
 
     # It is important to keep the custom pixel transformation first than keeping it at the end, else we meet with failure mode (D_fake = 0 or D_real = 0).
-    transform_list.append(CustomPixelTransformation())  # To normalize the image.
+    transform_list.append(CustomPixelTransformation(field_type='veldiv'))  # To normalize the image.
 
     if grayscale:
         transform_list.append(transforms.Grayscale(1))

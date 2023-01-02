@@ -4,7 +4,7 @@ import torch
 import numpy as np
 import os
 import torch
-from data.base_dataset import andres_forward
+from data.base_dataset import andres_forward, veldiv_forward
 
 def andres_backward(y, shift=20., scale=1., real_max=1e8):
     """Inverse of the function forward map.
@@ -15,7 +15,10 @@ def andres_backward(y, shift=20., scale=1., real_max=1e8):
     y_clipped = np.clip(y, simple_min, simple_max) / scale
     return (shift + 1) * (y_clipped + 1) / (1 - y_clipped)
 
-def tensor2im(input_image, imtype=np.float32):
+def veldiv_backward(x):
+    return np.arctanh(x)
+
+def tensor2im(input_image, imtype=np.float32, field_type='den'):
     """"Converts a Tensor array into a numpy image array.
 
     Parameters:
@@ -30,8 +33,12 @@ def tensor2im(input_image, imtype=np.float32):
         image_numpy = image_tensor[0].cpu().float().numpy()  # convert it into a numpy array
     else:  # if it is a numpy array, do nothing
         image_numpy = input_image
-    # scale and shift values must match those used in `andres_forward`.
-    image_numpy = andres_backward(image_numpy, scale=1., shift=1., real_max=1.5e4)  # In the original images, max value is always less than 1.5e4.
+    
+    if field_type == 'den':
+        # scale and shift values must match those used in `andres_forward`.
+        image_numpy = andres_backward(image_numpy, scale=1., shift=1., real_max=1.5e4)  # In the original images, max value is always less than 1.5e4.
+    else:
+        image_numpy = veldiv_backward(image_numpy)
     return image_numpy.astype(imtype)
 
 
