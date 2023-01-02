@@ -45,7 +45,7 @@ if __name__ == "__main__":
     os.mkdir(os.path.join(BASE_PATH, 'fr', 'test'))
 
     Ng = 512  # Grid size.
-    assert len(glob.glob(f'{BASE_PATH}/example_GR_*_*velDiv.npy.gz')) == len(glob.glob(f'{BASE_PATH}/example_F5n1_*_*velDiv.npy.gz'))
+    assert len(glob.glob(f'{BASE_PATH}/example_GR_*_*velDiv.npy.gz')) == len(glob.glob(f'{BASE_PATH}/example_F6n1_*_*velDiv.npy.gz'))
     total_slices = Ng * 3 * len(glob.glob(f'{BASE_PATH}/example_GR_*_*_0157_velDiv.npy.gz'))  # These many slices for either GR or F5n1.
 
     # Perform 80-10-10% split for train-val-test.
@@ -70,7 +70,7 @@ if __name__ == "__main__":
         gr_npy_gz_file = f'{BASE_PATH}/example_GR_L128Np256Ng512_{run}_0157_velDiv.npy.gz'
         g = gzip.GzipFile(gr_npy_gz_file, 'r')
         gr = np.load(g)
-        fr_npy_gz_file = f'{BASE_PATH}/example_F5n1_L128Np256Ng512_{run}_0157_velDiv.npy.gz'
+        fr_npy_gz_file = f'{BASE_PATH}/example_F6n1_L128Np256Ng512_{run}_0157_velDiv.npy.gz'
         f = gzip.GzipFile(fr_npy_gz_file, 'r')
         fr = np.load(f)
 
