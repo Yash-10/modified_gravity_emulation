@@ -90,15 +90,18 @@ def veldiv_forward(x):
     return np.tanh(x)
 
 class CustomPixelTransformation(object):
-    def __call__(self, img, field_type='den'):
+    def __init__(self, field_type='den'):
+        self.field_type = field_type
+
+    def __call__(self, img):
         """
         :param img: torch tensor
 
         :return: torch tensor - transformed image
         """
-        if field_type == 'den':
+        if self.field_type == 'den':
             return andres_forward(img, scale=1., shift=1)  # only keep changing `shift` during experimentation.
-        elif field_type == 'veldiv':
+        elif self.field_type == 'veldiv':
             return veldiv_forward(img)
 
     def __repr__(self):
