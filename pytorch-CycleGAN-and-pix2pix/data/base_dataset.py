@@ -111,7 +111,7 @@ def get_transform(opt, params=None, grayscale=False, method=transforms.Interpola
     transform_list = []
 
     # It is important to keep the custom pixel transformation first than keeping it at the end, else we meet with failure mode (D_fake = 0 or D_real = 0).
-    transform_list.append(CustomPixelTransformation(field_type='den'))  # To normalize the image.
+    transform_list.append(CustomPixelTransformation(field_type='veldiv'))  # To normalize the image.
 
     if grayscale:
         transform_list.append(transforms.Grayscale(1))
