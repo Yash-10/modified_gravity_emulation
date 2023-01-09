@@ -85,9 +85,18 @@ def andres_forward(x, shift=20., scale=1.):
     """
     return scale * (2 * (x / (x + 1 + shift)) - 1)
 
-def veldiv_forward(x):
-    """Simple tanh transformation to restrict the range to [-1, +1]."""
-    return np.tanh(x)
+# def veldiv_forward(x):
+#     """Simple tanh transformation to restrict the range to [-1, +1]."""
+#     return np.tanh(x)
+
+def veldiv_forward(arr, minval, maxval):
+    ''' Function to scale an input array to [-1, 1] '''
+    arr_range = maxval - minval
+    scaled = np.array((arr-minval) / float(arr_range), dtype='f')
+    arr_new = -1 + (scaled * 2)
+    # Make sure min value is -1 and max value is 1
+    # print('Min: %.3f, Max: %.3f' % (arr_new.min(), arr_new.max()))
+    return arr_new
 
 class CustomPixelTransformation(object):
     def __init__(self, field_type='den'):
@@ -102,7 +111,7 @@ class CustomPixelTransformation(object):
         if self.field_type == 'den':
             return andres_forward(img, scale=1., shift=1)  # only keep changing `shift` during experimentation.
         elif self.field_type == 'veldiv':
-            return veldiv_forward(img)
+            return veldiv_forward(img, -13257.988, 12448.369)  # For F4n1_GR vel div
 
     def __repr__(self):
         return self.__class__.__name__+'()'
