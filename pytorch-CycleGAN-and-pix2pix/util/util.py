@@ -15,14 +15,11 @@ def andres_backward(y, shift=20., scale=1., real_max=1e8):
     y_clipped = np.clip(y, simple_min, simple_max) / scale
     return (shift + 1) * (y_clipped + 1) / (1 - y_clipped)
 
-def veldiv_backward(x):
-    """
-    arr_max and arr_min are max and min values of the original image before `veldiv_forward`.
-    """
+def veldiv_backward(img, minval, maxval):
     scaled = (img + 1) / 2
     scaled = scaled.astype('f')
-    arr_range = arr_max - arr_min
-    arr = scaled * float(arr_range) + arr_min
+    arr_range = maxval - minval
+    arr = scaled * float(arr_range) + minval
     return arr
 
 def tensor2im(input_image, imtype=np.float32, field_type='den'):
