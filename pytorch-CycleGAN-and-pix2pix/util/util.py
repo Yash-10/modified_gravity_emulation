@@ -16,7 +16,14 @@ def andres_backward(y, shift=20., scale=1., real_max=1e8):
     return (shift + 1) * (y_clipped + 1) / (1 - y_clipped)
 
 def veldiv_backward(x):
-    return np.arctanh(x)
+    """
+    arr_max and arr_min are max and min values of the original image before `veldiv_forward`.
+    """
+    scaled = (img + 1) / 2
+    scaled = scaled.astype('f')
+    arr_range = arr_max - arr_min
+    arr = scaled * float(arr_range) + arr_min
+    return arr
 
 def tensor2im(input_image, imtype=np.float32, field_type='den'):
     """"Converts a Tensor array into a numpy image array.
