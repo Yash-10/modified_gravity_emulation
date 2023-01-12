@@ -17,7 +17,7 @@ def andres_backward(y, shift=20., scale=1., real_max=1e8):
 
 def veldiv_backward(img, minval, maxval):
     scaled = (img + 1) / 2
-#     print(type(scaled))
+    scaled = scaled.float()
     arr_range = maxval - minval
     arr = scaled * float(arr_range) + minval
     return arr
