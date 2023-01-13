@@ -92,11 +92,11 @@ def andres_forward(x, shift=20., scale=1.):
 def veldiv_forward(arr, minval, maxval):
     ''' Function to scale an input array to [-1, 1] '''
     arr_range = maxval - minval
-    scaled = torch.tensor((arr-minval) / float(arr_range), dtype=torch.float64)
+    scaled = torch.tensor((arr-minval) / float(arr_range))
     arr_new = -1 + (scaled * 2)
     # Make sure min value is -1 and max value is 1
     # print('Min: %.3f, Max: %.3f' % (arr_new.min(), arr_new.max()))
-    return arr_new
+    return arr_new.float()
 
 class CustomPixelTransformation(object):
     def __init__(self, field_type='den'):
