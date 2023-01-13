@@ -42,7 +42,7 @@ def tensor2im(input_image, imtype=np.float32, field_type='den'):
         # scale and shift values must match those used in `andres_forward`.
         image_numpy = andres_backward(image_numpy, scale=1., shift=1., real_max=1.5e4)  # In the original images, max value is always less than 1.5e4.
     else:
-        image_numpy = veldiv_backward(image_numpy)
+        image_numpy = veldiv_backward(image_numpy, -13257.988, 12448.369)
     return image_numpy.astype(imtype)
 
 
