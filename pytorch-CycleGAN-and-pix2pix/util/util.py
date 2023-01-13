@@ -22,6 +22,13 @@ def veldiv_backward(img, minval, maxval):
     arr = scaled * float(arr_range) + minval
     return arr
 
+def veldiv_backward_numpy(img, minval, maxval):
+    scaled = (img + 1) / 2
+    scaled = scaled.astype('f')
+    arr_range = maxval - minval
+    arr = scaled * float(arr_range) + minval
+    return arr
+
 def tensor2im(input_image, imtype=np.float32, field_type='den'):
     """"Converts a Tensor array into a numpy image array.
 
@@ -42,7 +49,7 @@ def tensor2im(input_image, imtype=np.float32, field_type='den'):
         # scale and shift values must match those used in `andres_forward`.
         image_numpy = andres_backward(image_numpy, scale=1., shift=1., real_max=1.5e4)  # In the original images, max value is always less than 1.5e4.
     else:
-        image_numpy = veldiv_backward(image_numpy, -13257.988, 12448.369)
+        image_numpy = veldiv_backward_numpy(image_numpy, -13257.988, 12448.369)
     return image_numpy.astype(imtype)
 
 
