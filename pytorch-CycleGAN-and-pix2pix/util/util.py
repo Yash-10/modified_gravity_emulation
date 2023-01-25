@@ -2,6 +2,7 @@
 from __future__ import print_function
 import torch
 import numpy as np
+import pandas as pd
 import os
 import torch
 from data.base_dataset import andres_forward, veldiv_forward
@@ -29,7 +30,7 @@ def veldiv_backward_numpy(img, minval, maxval):
     arr = scaled * float(arr_range) + minval
     return arr
 
-def tensor2im(input_image, imtype=np.float32, field_type='den'):
+def tensor2im(input_image, image_path, imtype=np.float32, field_type='den'):
     """"Converts a Tensor array into a numpy image array.
 
     Parameters:
@@ -48,8 +49,11 @@ def tensor2im(input_image, imtype=np.float32, field_type='den'):
     if field_type == 'den':
         # scale and shift values must match those used in `andres_forward`.
         image_numpy = andres_backward(image_numpy, scale=1., shift=1., real_max=1.5e4)  # In the original images, max value is always less than 1.5e4.
-#     else:
-#         image_numpy = veldiv_backward_numpy(image_numpy, -13257.988, 12448.369)
+    else:
+        df = pd.read_csv('minmax_data_velDiv_F4_GR.csv')
+        df = df[df['npy_file'] == image_path]
+        assert df.shape == (1, 3)
+        image_numpy = veldiv_backward_numpy(image_numpy, df['min'].values[0], df['max'].values[0])
     return image_numpy.astype(imtype)
 
 
