@@ -243,9 +243,9 @@ def plot_density(den_gen, den_ip, den_gt, plotting_mean=True):  # plotting_mean 
     plt.rcParams['figure.figsize'] = [8, 6]
     fig, ax = plt.subplots(2, 1, figsize=(8, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
     fig.subplots_adjust(hspace=0)
-    sns.kdeplot(den_gen, ax=ax[0], shade=False, x='cosmological density', y=None, color=gen_gt_color)
-    sns.kdeplot(den_ip, ax=ax[0], shade=False, c=ip_gt_color)
-    sns.kdeplot(den_gt, ax=ax[0], shade=False, c='black')
+    sns.kdeplot(den_gen, ax=ax[0], fill=False, x='cosmological density', y=None, color=gen_gt_color)
+    sns.kdeplot(den_ip, ax=ax[0], fill=False, c=ip_gt_color)
+    sns.kdeplot(den_gt, ax=ax[0], fill=False, c='black')
     if plotting_mean:
         ax[0].set_title('Cosmological mean density distribution')
     else:
@@ -389,9 +389,9 @@ def driver(gens, ips, gts):
 #     fig, ax = plt.subplots(2, 1, figsize=(8, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
 #     fig.subplots_adjust(hspace=0)
 
-#     sns.kdeplot(pc_gen, ax=ax[0], shade=False, x='pixel value', y=None, color=gen_gt_color)
-#     sns.kdeplot(pc_ip, ax=ax[0], shade=False, x='pixel value', y=None, color=ip_gt_color)
-#     sns.kdeplot(pc_gt, ax=ax[0], shade=False, x='pixel value', y=None, color='black')
+#     sns.kdeplot(pc_gen, ax=ax[0], fill=False, x='pixel value', y=None, color=gen_gt_color)
+#     sns.kdeplot(pc_ip, ax=ax[0], fill=False, x='pixel value', y=None, color=ip_gt_color)
+#     sns.kdeplot(pc_gt, ax=ax[0], fill=False, x='pixel value', y=None, color='black')
 
 #     ax[1].set_xscale('log')
 #     ax[1].plot(100 * (pc_gt - pc_gen) / pc_gt, c=gen_gt_color)
@@ -423,9 +423,9 @@ def driver(gens, ips, gts):
 #     fig, ax = plt.subplots(2, 1, figsize=(8, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
 #     fig.subplots_adjust(hspace=0)
 
-#     sns.kdeplot(pixel_gen, ax=ax[0], shade=False, x='pixel value', y=None, color=gen_gt_color)
-#     sns.kdeplot(pixel_ip, ax=ax[0], shade=False, x='pixel value', y=None, color=ip_gt_color)
-#     sns.kdeplot(pixel_gt, ax=ax[0], shade=False, x='pixel value', y=None, color='black')
+#     sns.kdeplot(pixel_gen, ax=ax[0], fill=False, x='pixel value', y=None, color=gen_gt_color)
+#     sns.kdeplot(pixel_ip, ax=ax[0], fill=False, x='pixel value', y=None, color=ip_gt_color)
+#     sns.kdeplot(pixel_gt, ax=ax[0], fill=False, x='pixel value', y=None, color='black')
 
 #     ax[1].set_xscale('log')
 #     ax[1].plot(100 * (pixel_gt - pixel_gen) / ps_gt, c=gen_gt_color)
