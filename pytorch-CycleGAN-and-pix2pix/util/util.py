@@ -37,6 +37,7 @@ def tensor2im(input_image, image_path, imtype=np.float32, field_type='den'):
         input_image (tensor) --  the input image tensor array
         imtype (type)        --  the desired type of the converted numpy array
     """
+    image_path = image_path[0]
     if not isinstance(input_image, np.ndarray):
         if isinstance(input_image, torch.Tensor):  # get the data from a variable
             image_tensor = input_image.data
@@ -52,7 +53,7 @@ def tensor2im(input_image, image_path, imtype=np.float32, field_type='den'):
     else:
         df = pd.read_csv('minmax_data_velDiv_F4_GR.csv')
         df = df[df['npy_file'] == image_path]
-        assert df.shape == (1, 3)
+        assert df.shape[0] == 1
         image_numpy = veldiv_backward_numpy(image_numpy, df['min'].values[0], df['max'].values[0])
     return image_numpy.astype(imtype)
 
