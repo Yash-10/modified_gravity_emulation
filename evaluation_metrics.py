@@ -12,6 +12,10 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import seaborn as sns
 
+sns.set_context("paper", font_scale = 2)
+sns.set_style('whitegrid')
+sns.set(style='ticks')
+
 import Pk_library.Pk_library as PKL
 
 from scipy.stats import wasserstein_distance
@@ -20,13 +24,83 @@ import scipy.ndimage.filters as filters
 import torch
 from torchmetrics.functional import multiscale_structural_similarity_index_measure
 
+from scipy.stats import ks_2samp
+
 gen_gt_color = '#FC9272'
 ip_gt_color = '#1C9099'
 ip_gen_color = '#2ca25f'
 
+ticklabelsize = 17
+axeslabelsize = 19
+titlesize = 20
+
+#from scipy.interpolate import UnivariateSpline, InterpolatedUnivariateSpline
+#def smooth_ps(k, Pk):
+#    w = np.linspace(0.01, 1, k.shape[0])
+#    spl = UnivariateSpline(k, Pk, w=w)
+#    return k, spl(k)
+
+# Below function taken from https://scipy-cookbook.readthedocs.io/items/SignalSmooth.html#smoothing-of-a-1d-signal
+def smooth(x,window_len=5,window='hanning'):
+    """smooth the data using a window with requested size.
+    
+    This method is based on the convolution of a scaled window with the signal.
+    The signal is prepared by introducing reflected copies of the signal 
+    (with the window size) in both ends so that transient parts are minimized
+    in the begining and end part of the output signal.
+    
+    input:
+        x: the input signal 
+        window_len: the dimension of the smoothing window; should be an odd integer
+        window: the type of window from 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'
+            flat window will produce a moving average smoothing.
+
+    output:
+        the smoothed signal
+        
+    example:
+
+    t=linspace(-2,2,0.1)
+    x=sin(t)+randn(len(t))*0.1
+    y=smooth(x)
+    
+    see also: 
+    
+    numpy.hanning, numpy.hamming, numpy.bartlett, numpy.blackman, numpy.convolve
+    scipy.signal.lfilter
+ 
+    TODO: the window parameter could be the window itself if an array instead of a string
+    NOTE: length(output) != length(input), to correct this: return y[(window_len/2-1):-(window_len/2)] instead of just y.
+    """
+
+    if x.ndim != 1:
+        raise ValueError("smooth only accepts 1 dimension arrays.")
+
+    if x.size < window_len:
+        raise ValueError("Input vector needs to be bigger than window size.")
+
+
+    if window_len<3:
+        return x
+
+
+    if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+        raise ValueError("Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
+
+
+    s=np.r_[x[window_len-1:0:-1],x,x[-2:-window_len-1:-1]]
+    #print(len(s))
+    if window == 'flat': #moving average
+        w=np.ones(window_len,'d')
+    else:
+        w=eval('np.'+window+'(window_len)')
+
+    y=np.convolve(w/w.sum(),s,mode='valid')
+    return y[round(window_len/2-1):-round(window_len/2)]
+
 # Power spectrum
-def ps_2d(delta, BoxSize=128):
-    """Calculates the 2D power spectrum of a density field. It internally calculates the density contrast field and then calculates the power spectrum.
+def ps_2d(delta, BoxSize=128, vel_field=False):
+    """Calculates the 2D power spectrum of a density/velocity divergence field. It internally calculates the density contrast field and then calculates the power spectrum. For velocity divergence, the field kept as it is.
 
     Args:
         delta (numpy.ndarray): Density slice (note: this is the density field rather than density contrast).
@@ -35,8 +109,9 @@ def ps_2d(delta, BoxSize=128):
         (numpy.ndarray, numpy.ndarray): The wavenumbers and power spectrum amplitudes.
     """
     delta = delta.astype(np.float32)
-    # Calculate density contrast.
-    delta /= np.mean(delta, dtype=np.float64);  delta -= 1.0
+    if not vel_field:
+        # Calculate density contrast.
+        delta /= np.mean(delta, dtype=np.float64);  delta -= 1.0
 
     MAS = 'None'
     threads = 2
@@ -88,7 +163,7 @@ def wasserstein_distance_norm(p, q):
 
 # Peak count.
 # Code taken from https://renkulab.io/gitlab/nathanael.perraudin/darkmattergan/-/blob/master/cosmotools/metric/stats.py
-def peak_count(X, neighborhood_size=5, threshold=0.5):
+def peak_count(X, neighborhood_size=5, threshold=0.5, remove_outliers=False):
     """
     Peak cound for a 2D or a 3D square image
     :param X: numpy array shape [n,n] or [n,n,n]
@@ -120,8 +195,12 @@ def peak_count(X, neighborhood_size=5, threshold=0.5):
         data_min = filters.minimum_filter(X, neighborhood_size)
         diff = ((data_max - data_min) > threshold)
         maxima[diff == 0] = 0
+    
+    p = np.extract(maxima, X)
+    if remove_outliers:
+        p = p[p < np.quantile(p, 0.99)]
 
-    return np.extract(maxima, X)
+    return p
 
 # MS-SSIM
 def mssim_single(gen_img, gt_img):
@@ -237,19 +316,25 @@ def transfer_function(ps_pred, ps_true):
 #     ax.set_xticklabels(k)
 #     plt.show()
 
-def plot_density(den_gen, den_ip, den_gt, plotting_mean=True):  # plotting_mean is only used for setting the plot title. If False, it is assumed we are plotting the median density.
+def plot_density(den_gen, den_ip, den_gt, plotting_mean=True, vel_field=True):  # plotting_mean is only used for setting the plot title. If False, it is assumed we are plotting the median density.
     # Note that the KDE plots, similar to histograms, are trying to approximate the PDF that generated the values shown in the plot.
     # See more here: https://seaborn.pydata.org/tutorial/distributions.html#tutorial-kde
     plt.rcParams['figure.figsize'] = [8, 6]
     fig, ax = plt.subplots(2, 1, figsize=(8, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
     fig.subplots_adjust(hspace=0)
-    sns.kdeplot(den_gen, ax=ax[0], fill=False, x='cosmological density', y=None, color=gen_gt_color)
+    sns.kdeplot(den_gen, ax=ax[0], fill=False, y=None, color=gen_gt_color)
     sns.kdeplot(den_ip, ax=ax[0], fill=False, c=ip_gt_color)
     sns.kdeplot(den_gt, ax=ax[0], fill=False, c='black')
     if plotting_mean:
-        ax[0].set_title('Cosmological mean density distribution')
+        if vel_field:
+            ax[0].set_title('Velocity divergence distribution')
+        else:
+            ax[0].set_title('Cosmological mean density distribution')
     else:
-        ax[0].set_title('Cosmological median density distribution')
+        if vel_field:
+            ax[0].set_title('Velocity divergence distribution')
+        else:
+            ax[0].set_title('Cosmological median density distribution')
     ax[0].set_ylabel('$N_{pixels}$')
     handles = [
             mpatches.Patch(facecolor=gen_gt_color, label="cGAN generated"),
@@ -263,53 +348,203 @@ def plot_density(den_gen, den_ip, den_gt, plotting_mean=True):  # plotting_mean 
     ax[1].plot(100 * (den_gt - den_ip) / den_gt, c=ip_gt_color)
     ax[1].axhline(y=0, linestyle='--', c='black')
     ax[1].set_ylabel('Relative difference (%)', fontsize=14)
-    ax[1].set_xlabel('pixel value (cosmological density)', fontsize=14);
+    if vel_field:
+        ax[1].set_xlabel('pixel value (velocity divergence)', fontsize=14);    
+    else:
+        ax[1].set_xlabel('pixel value (cosmological density)', fontsize=14);
     ax[1].tick_params(axis='x', labelsize=12)
     ax[1].tick_params(axis='y', labelsize=12)
-    plt.show()
+    plt.savefig(f'density_compare_{plotting_mean}.png')
 
     plt.show()
 
 def frac_diff(real, fake):
     return np.abs(real - fake) / real
 
-##### Driver function for all evaluation metrics #####
-def driver(gens, ips, gts):
-    # TODO: Also show shaded errorbars around plots since all are averaged over multiple images.
+import numpy as np
+import functools
+import multiprocessing as mp
 
+import scipy.ndimage.filters as filters
+
+def peak_count_hist(dat, bins=20, lim=None, neighborhood_size=5, threshold=0, log=True, mean=True, remove_outliers=False):
+    """Make the histogram of the peak count of data.
+    Arguments
+    ---------
+    dat  : input data (numpy array, first dimension for the sample)
+    bins : number of bins for the histogram (default 20)
+    lim  : limit for the histogram, if None, then min(peak), max(peak)
+    """
+    
+    # Remove single dimension...
+    dat = np.squeeze(dat)
+    
+    #num_workers = mp.cpu_count() - 1
+    num_workers = 1
+    with mp.Pool(processes=num_workers) as pool:
+        peak_count_arg = functools.partial(peak_count, neighborhood_size=neighborhood_size, threshold=threshold, remove_outliers=remove_outliers)
+        peak_arr = np.array(pool.map(peak_count_arg, dat))
+    peak = np.hstack(peak_arr)
+    if log:
+        peak = np.log(peak+np.e)
+        peak_arr = np.array([np.log(pa+np.e) for pa in peak_arr])
+    if lim is None:
+        lim = (np.min(peak), np.max(peak))
+    else:
+        lim = tuple(map(type(peak[0]), lim))
+    # Compute histograms individually
+    with mp.Pool(processes=num_workers) as pool:
+        hist_func = functools.partial(unbounded_histogram, bins=bins, range=lim)
+        res = np.array(pool.map(hist_func, peak_arr))
+    
+    # Unpack results
+    y = np.vstack(res[:, 0])
+    x = res[0, 1]
+
+    x = (x[1:] + x[:-1]) / 2
+    if log:
+        x = np.exp(x)-np.e
+    if mean:
+        y = np.median(y, axis=0)
+    return y, x, lim
+
+
+def unbounded_histogram(dat, range=None, remove_outliers=False, **kwargs):
+    if remove_outliers:
+        dat = dat.ravel()
+        dat = dat[dat < np.quantile(dat, 0.99)]
+    if range is None:
+        return np.histogram(dat, **kwargs)
+    y, x = np.histogram(dat, range=range, **kwargs)
+    y[0] = y[0] + np.sum(dat<range[0])
+    y[-1] = y[-1] + np.sum(dat>range[1])
+    return y, x
+
+def peak_count_hist_real_fake(real, fake, bins=20, lim=None, log=True, neighborhood_size=5, threshold=0, mean=True, remove_outliers=False):
+    y_real, x, lim = peak_count_hist(real, bins=bins, lim=lim, log=log, neighborhood_size=neighborhood_size, threshold=threshold, mean=mean, remove_outliers=remove_outliers)
+    y_fake, _, _ = peak_count_hist(fake, bins=bins, lim=lim, log=log, neighborhood_size=neighborhood_size, threshold=threshold, mean=mean, remove_outliers=remove_outliers)
+    return y_real, y_fake, x
+
+def mass_hist(dat, bins=20, lim=None, log=True, mean=True, remove_outliers=False, **kwargs):
+    """Make the histogram of log10(data) data.
+    Arguments
+    ---------
+    dat  : input data
+    bins : number of bins for the histogram (default 20)
+    lim  : limit for the histogram, if None then min(log10(dat)), max(dat)
+    """
+    if log:
+        log_data = np.log10(dat + 1)
+    else:
+        log_data = dat
+    if lim is None:
+        lim = (np.min(log_data), np.max(log_data))
+
+    #num_workers = mp.cpu_count() - 1
+    num_workers = 1
+    with mp.Pool(processes=num_workers) as pool:
+        results = [pool.apply(unbounded_histogram, (x,), dict(bins=bins, range=lim, remove_outliers=remove_outliers)) for x in log_data]
+    y = np.vstack([y[0] for y in results])
+    x = results[0][1]
+    if log:
+        x = 10**((x[1:] + x[:-1]) / 2) - 1
+    else:
+        x = (x[1:] + x[:-1]) / 2
+    if mean:
+        return np.median(y, axis=0), x, lim
+    else:
+        return y, x, lim
+
+def mass_hist_real_fake(real, fake, bins=20, lim=None, log=True, mean=True, remove_outliers=False):
+    if lim is None:
+        new_lim = True
+    else:
+        new_lim = False
+    y_real, x, lim = mass_hist(real, bins=bins, lim=lim, log=log, mean=mean, remove_outliers=remove_outliers)
+    if new_lim:
+        lim = list(lim)
+        lim[1] = lim[1]+1
+        y_real, x, lim = mass_hist(real, bins=bins, lim=lim, log=log, mean=mean, remove_outliers=remove_outliers)
+
+    y_fake, _, _ = mass_hist(fake, bins=bins, lim=lim, log=log, mean=mean, remove_outliers=remove_outliers)
+    return y_real, y_fake, x
+
+
+##### Driver function for all evaluation metrics #####
+def driver(gens, ips, gts, vel_field=False):
     ########################  Run evaluation metrics  ########################
     # 1. AVERAGED POWER SPECTRUM, TRANSFER FUNCTION, AND CORRELATION COEFFICIENT
     with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):  # Prevent unnecessary verbose output from printing on screen.
-        k = ps_2d(gens[0])[0]
-        ps_gen = np.vstack([ps_2d(im)[1] for im in gens]).mean(axis=0)
-        ps_ip = np.vstack([ps_2d(im)[1] for im in ips]).mean(axis=0)
-        ps_gt = np.vstack([ps_2d(im)[1] for im in gts]).mean(axis=0)
+        k = ps_2d(gens[0], vel_field=vel_field)[0]
+        gen__ = np.vstack([ps_2d(im, vel_field=vel_field)[1][k <= 5] for im in gens])
+        ip__ = np.vstack([ps_2d(im, vel_field=vel_field)[1][k <= 5] for im in ips])
+        gt__ = np.vstack([ps_2d(im, vel_field=vel_field)[1][k <= 5] for im in gts])
 
-    fig, ax = plt.subplots(2, 1, figsize=(8, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
+        # Select only upto k = 5 since scales smaller than that are not well reproduced by MG-GLAM itself. So using them does not make sense.
+        k = k[k <= 5]
+
+        ps_gen = gen__.mean(axis=0)
+        ps_ip = ip__.mean(axis=0)
+        ps_gt = gt__.mean(axis=0)
+        ps_gen_std = gen__.std(axis=0)
+        ps_ip_std = ip__.std(axis=0)
+        ps_gt_std = gt__.std(axis=0)
+        print(f'Averaged generated power spectra standard deviation: {ps_gen_std}')
+    
+    # Median power spectrum.
+    ps_gen_median = np.median(gen__, axis=0)
+    ps_ip_median = np.median(ip__, axis=0)
+    ps_gt_median = np.median(gt__, axis=0)
+
+    print("Median power spectrum...")
+    chisquare_ip_gt = chiq_squared_dist_ps(ps_ip_median, ps_gt_median)
+    chisquare_gen_gt = chiq_squared_dist_ps(ps_gen_median, ps_gt_median)
+    print(f'Chi-squared distance between averaged power spectra:\n\tbetween ground-truth f(R) and input GR: {chisquare_ip_gt}\n\tbetween ground-truth f(R) and generated f(R): {chisquare_gen_gt}')
+
+    # Print chi-squared distance between averaged power spectra.
+    print("Mean power spectrum...")
+    chisquare_ip_gt = chiq_squared_dist_ps(ps_ip, ps_gt)
+    chisquare_gen_gt = chiq_squared_dist_ps(ps_gen, ps_gt)
+    print(f'Chi-squared distance between averaged power spectra:\n\tbetween ground-truth f(R) and input GR: {chisquare_ip_gt}\n\tbetween ground-truth f(R) and generated f(R): {chisquare_gen_gt}')
+
+    # Print standard deviation of averaged power spectrum (i.e., scatter).
+    chisquare_ip_gt_std = chiq_squared_dist_ps(ps_ip_std, ps_gt_std)
+    chisquare_gen_gt_std = chiq_squared_dist_ps(ps_gen_std, ps_gt_std)
+    print(f'Chi-squared distance between the standard deviation of averaged power spectra:\n\tbetween ground-truth f(R) and input GR: {chisquare_ip_gt_std}\n\tbetween ground-truth f(R) and generated f(R): {chisquare_gen_gt_std}')
+
+    fig, ax = plt.subplots(2, 1, figsize=(9, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
     fig.subplots_adjust(hspace=0)
 
-    ax[0].loglog(k, ps_gen, c=gen_gt_color, label='cGAN generated')
-    ax[0].loglog(k, ps_ip, c=ip_gt_color, label='GR simulation')
-    ax[0].loglog(k, ps_gt, c='black', label='f(R) simulation')
+    ax[0].loglog(k, ps_gen_median, c=gen_gt_color, label=fr'cGAN: $\chi^2 = {int(chisquare_gen_gt)}$')
+    ax[0].loglog(k, ps_ip_median, c=ip_gt_color, label=fr'GR sim: $\chi^2 = {int(chisquare_ip_gt)}$')
+    ax[0].loglog(k, ps_gt_median, c='black', label='f(R) sim')
     ax[0].legend()
-    ax[0].set_title('Averaged Power Spectrum', fontsize=18)
-    ax[0].tick_params(axis='x', labelsize=12)
-    ax[0].tick_params(axis='y', labelsize=12)
+    ax[0].set_title('Median power spectrum', fontsize=titlesize)
+    ax[0].tick_params(axis='x', labelsize=ticklabelsize)
+    ax[0].tick_params(axis='y', labelsize=ticklabelsize)
+    #ax[0].fill_between(k, ps_gen-ps_gen_std, ps_gen+ps_gen_std ,alpha=0.3, facecolor=gen_gt_color)
+    ax[0].fill_between(k, ps_ip-ps_ip_std, ps_ip+ps_ip_std ,alpha=0.1, facecolor=ip_gt_color)
+    ax[0].fill_between(k, ps_gt-ps_gt_std, ps_gt+ps_gt_std ,alpha=0.1, facecolor='black')
+    ax[0].set_ylabel('$P(k)$', fontsize=titlesize)
 
     ax[1].set_xscale('log')
-    ax[1].plot(k, 100 * (ps_gen - ps_gt) / ps_gt, c=gen_gt_color)
-    ax[1].plot(k, 100 * (ps_ip - ps_gt) / ps_gt, c=ip_gt_color)
+    ax[1].plot(k, 100 * (ps_gen_median - ps_gt_median) / ps_gt_median, c=gen_gt_color)
+    ax[1].plot(k, 100 * (ps_ip_median - ps_gt_median) / ps_gt_median, c=ip_gt_color)
     ax[1].axhline(y=0, c='black', linestyle='--')
-    ax[1].set_ylabel('Relative difference (%)', fontsize=14)
-    ax[1].set_xlabel('k (h/Mpc)', fontsize=14);
-    ax[1].tick_params(axis='x', labelsize=12)
-    ax[1].tick_params(axis='y', labelsize=12)
+    ax[1].set_ylabel(r'$\dfrac{P(k)}{P_{f(R)}(k)} - 1$ (%)', fontsize=axeslabelsize)
+    #ax[1].set_ylabel('(P(k)/P_fr(k)) - 1')
+    ax[1].set_xlabel('$k$ (h/Mpc)', fontsize=axeslabelsize);
+    ax[1].tick_params(axis='x', labelsize=ticklabelsize)
+    ax[1].tick_params(axis='y', labelsize=ticklabelsize)
     ax[1].fill_between(k, -25, 25, alpha=0.2)
-    ax[0].set_xlim([k.min(), 15.])
-    ax[1].set_xlim([k.min(), 15.])
+    #ax[1].fill_between(k, -ps_gt_std, ps_gt_std, alpha=0.1)
+    ax[0].set_xlim([k.min(), 5])
+    ax[1].set_xlim([k.min(), 5])
     ax[1].set_ylim([-100, 100])
     ax[1].set_yticks(np.arange(-100, +125, 25))
+    plt.savefig('ps_f4_den_median.png', bbox_inches='tight', dpi=250)
 
+    """
     #### Repeat the relative difference plot as above but taking input GR as reference ####
     fig, ax = plt.subplots(1, 1, figsize=(8, 4))
     fig.subplots_adjust(hspace=0)
@@ -320,8 +555,8 @@ def driver(gens, ips, gts):
     ax.axhline(y=0, c='black', linestyle='--')
     ax.set_ylabel('Relative difference (%)', fontsize=14)
     ax.set_xlabel('k (h/Mpc)', fontsize=14);
-    ax.tick_params(axis='x', labelsize=12)
-    ax.tick_params(axis='y', labelsize=12)
+    ax.tick_params(axis='x', labelsize=14)
+    ax.tick_params(axis='y', labelsize=14)
     ax.fill_between(k, -25, 25, alpha=0.2)
     ax.set_xlim([k.min(), 15.])
     ax.set_xlim([k.min(), 15.])
@@ -329,8 +564,10 @@ def driver(gens, ips, gts):
     ax.set_title('Reference is GR simulation')
     ax.legend()
     ax.set_yticks(np.arange(-100, +125, 25))
-    #######################################################################################
 
+    #######################################################################################
+    """
+    """
     # Now plot transfer function and stochasticity.
     fig, ax = plt.subplots(2, 1, figsize=(18, 18))
 
@@ -371,14 +608,10 @@ def driver(gens, ips, gts):
 #     ax = sns.heatmap(corr_gen_gt, linewidth=0.5, xticklabels=False, yticklabels=False, vmin=-1., vmax=1.)
 #     ax.set_title('Correlation coefficient: cGAN-generated f(R) vs Simulation f(R)')
 #     plt.show()
+    """
 
-    # Print chi-squared distance between averaged power spectra.
-    chisquare_ip_gt = chiq_squared_dist_ps(ps_ip, ps_gt)
-    chisquare_gen_gt = chiq_squared_dist_ps(ps_gen, ps_gt)
-    print(f'Chi-squared distance between averaged power spectra:\n\tbetween ground-truth f(R) and input GR: {chisquare_ip_gt}\n\tbetween ground-truth f(R) and generated f(R): {chisquare_gen_gt}')
-
-    del corr_gen_gt, corr_ip_gt, ps_gen, ps_ip, ps_gt
-    gc.collect()
+    #del corr_gen_gt, corr_ip_gt, ps_gen, ps_ip, ps_gt
+    #gc.collect()
 
     # 2. PEAK COUNTS
     func_pc = partial(peak_count, neighborhood_size=5, threshold=0.5)
@@ -389,9 +622,9 @@ def driver(gens, ips, gts):
 #     fig, ax = plt.subplots(2, 1, figsize=(8, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
 #     fig.subplots_adjust(hspace=0)
 
-#     sns.kdeplot(pc_gen, ax=ax[0], fill=False, x='pixel value', y=None, color=gen_gt_color)
-#     sns.kdeplot(pc_ip, ax=ax[0], fill=False, x='pixel value', y=None, color=ip_gt_color)
-#     sns.kdeplot(pc_gt, ax=ax[0], fill=False, x='pixel value', y=None, color='black')
+#     sns.kdeplot(pc_gen, ax=ax[0], shade=False, x='pixel value', y=None, color=gen_gt_color)
+#     sns.kdeplot(pc_ip, ax=ax[0], shade=False, x='pixel value', y=None, color=ip_gt_color)
+#     sns.kdeplot(pc_gt, ax=ax[0], shade=False, x='pixel value', y=None, color='black')
 
 #     ax[1].set_xscale('log')
 #     ax[1].plot(100 * (pc_gt - pc_gen) / pc_gt, c=gen_gt_color)
@@ -411,7 +644,27 @@ def driver(gens, ips, gts):
     wass_peak_gt_ip = wasserstein_distance_norm(p=pc_gt, q=pc_ip)
     wass_peak_gt_gen = wasserstein_distance_norm(p=pc_gt, q=pc_gen)
     print(f'Peak count distances:\n\tbetween ground truth f(R) and input GR: {wass_peak_gt_ip}\n\tbetween ground_truth f(R) and generated f(R): {wass_peak_gt_gen}')
-    # TODO: Plot?
+    
+    # Plot peak count histogram
+    # Note: even though mean=True is set, actually the median is taken instead of mean.
+    y_real, y_fake, x = peak_count_hist_real_fake(gts, gens, log=not vel_field, mean=True, neighborhood_size=5, threshold=0.5, bins=20, remove_outliers=True)
+    y_ip, y_fake_new, x = peak_count_hist_real_fake(ips, gens, log=not vel_field, mean=True, neighborhood_size=5, threshold=0.5, bins=20, remove_outliers=True)
+    print(y_fake[:10])
+    print(y_fake_new[:10])
+    assert np.allclose(y_fake, y_fake_new)
+
+    fig, ax = plt.subplots(1, 1, figsize=(8, 7))
+    ax.plot(x, y_fake, label=f'cGAN: 1-WD: {wass_peak_gt_gen:.4f}', c=gen_gt_color, alpha=0.7)
+    ax.plot(x, y_real, label='F4 sim', c='black', alpha=0.7)
+    ax.plot(x, y_ip, label='GR sim', c=ip_gt_color, alpha=0.7)
+    ax.tick_params(axis='x', labelsize=ticklabelsize)
+    ax.tick_params(axis='y', labelsize=ticklabelsize)
+    ax.legend(fontsize=ticklabelsize)
+    ax.set_xscale('log')
+    ax.set_ylabel('Peak count', fontsize=axeslabelsize)
+    ax.set_xlabel('Pixel density value', fontsize=axeslabelsize)
+    ax.set_title('Peak count histogram', fontsize=titlesize)
+    plt.savefig('peak_count_hist_f4_den.png', bbox_inches='tight', dpi=250)
 
     del pc_gen, pc_ip, pc_gt, wass_peak_gt_ip, wass_peak_gt_gen
     gc.collect()
@@ -423,9 +676,9 @@ def driver(gens, ips, gts):
 #     fig, ax = plt.subplots(2, 1, figsize=(8, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
 #     fig.subplots_adjust(hspace=0)
 
-#     sns.kdeplot(pixel_gen, ax=ax[0], fill=False, x='pixel value', y=None, color=gen_gt_color)
-#     sns.kdeplot(pixel_ip, ax=ax[0], fill=False, x='pixel value', y=None, color=ip_gt_color)
-#     sns.kdeplot(pixel_gt, ax=ax[0], fill=False, x='pixel value', y=None, color='black')
+#     sns.kdeplot(pixel_gen, ax=ax[0], shade=False, x='pixel value', y=None, color=gen_gt_color)
+#     sns.kdeplot(pixel_ip, ax=ax[0], shade=False, x='pixel value', y=None, color=ip_gt_color)
+#     sns.kdeplot(pixel_gt, ax=ax[0], shade=False, x='pixel value', y=None, color='black')
 
 #     ax[1].set_xscale('log')
 #     ax[1].plot(100 * (pixel_gt - pixel_gen) / ps_gt, c=gen_gt_color)
@@ -442,25 +695,64 @@ def driver(gens, ips, gts):
     ####################################################################################################################################################################################
     ### The reason why evaluate distance on chunks of images rather than all images is because all images do not fit into memory due to which the RAM (~13 GB in Kaggle kernel) blows up.
     ####################################################################################################################################################################################
-    wass_pixel_gt_ips = []
-    wass_pixel_gt_gens = []
-    for index in [0, 50, 100, 150, 200, 250, 300, 350, 400]:
-        if index == 400:
-            assert len(gts[index:]) == 61
-            wass_pixel_gt_ip = wasserstein_distance_norm(p=gts[index:], q=ips[index:])
-            wass_pixel_gt_gen = wasserstein_distance_norm(p=gts[index:], q=gens[index:])
-        else:
-            assert len(gts[index:index+50]) == 50
-            wass_pixel_gt_ip = wasserstein_distance_norm(p=gts[index:index+50], q=ips[index:index+50])
-            wass_pixel_gt_gen = wasserstein_distance_norm(p=gts[index:index+50], q=gens[index:index+50])
 
-        wass_pixel_gt_ips.append(wass_pixel_gt_ip)
-        wass_pixel_gt_gens.append(wass_pixel_gt_gen)
+    wass_pixel_gt_ip = wasserstein_distance_norm(p=gts, q=ips)
+    wass_pixel_gt_gen = wasserstein_distance_norm(p=gts, q=gens)
 
-    mean_wass_pixel_gt_ip = np.mean(wass_pixel_gt_ips)
-    mean_wass_pixel_gt_gen = np.mean(wass_pixel_gt_gens)
+    #for index in np.arange(0, 2000, 500):
+    #    if index == 400:
+    #        assert len(gts[index:]) == 36
+    #        wass_pixel_gt_ip = wasserstein_distance_norm(p=gts[index:], q=ips[index:])
+    #        wass_pixel_gt_gen = wasserstein_distance_norm(p=gts[index:], q=gens[index:])
+    #    else:
+    #        assert len(gts[index:index+500]) == 500
+    #        wass_pixel_gt_ip = wasserstein_distance_norm(p=gts[index:index+500], q=ips[index:index+500])
+    #        wass_pixel_gt_gen = wasserstein_distance_norm(p=gts[index:index+500], q=gens[index:index+500])
+    #
+    #    wass_pixel_gt_ips.append(wass_pixel_gt_ip)
+    #    wass_pixel_gt_gens.append(wass_pixel_gt_gen)
 
-    print(f'Pixel distances:\n\tbetween ground truth f(R) and input GR: {mean_wass_pixel_gt_ip}\n\tbetween ground_truth f(R) and generated f(R): {mean_wass_pixel_gt_gen}')
+    #mean_wass_pixel_gt_ip = np.mean(wass_pixel_gt_ips)
+    #mean_wass_pixel_gt_gen = np.mean(wass_pixel_gt_gens)
+
+    print(f'Pixel distances:\n\tbetween ground truth f(R) and input GR: {wass_pixel_gt_ip}\n\tbetween ground_truth f(R) and generated f(R): {wass_pixel_gt_gen}')
+
+    #fig, ax = plt.subplots(1, 1)
+    #sns.kdeplot(gens.flatten(), ax=ax, fill=False, y=None, color=gen_gt_color)
+    #sns.kdeplot(gts.flatten(), ax=ax, fill=False, y=None, color='black')
+    #sns.kdeplot(ips.flatten(), ax=ax, fill=False, y=None, color=ip_gt_color)
+    #ax.set_xlim([-400, +400])
+    #plt.savefig('pixel_dist_compare.png')
+
+    # Plot mass histogram
+    y_real, y_fake, x = mass_hist_real_fake(gts, gens, log=not vel_field, mean=True, bins=np.logspace(0, 4, 20), remove_outliers=True)
+    y_ip, y_fake_new, x = mass_hist_real_fake(ips, gens, log=not vel_field, mean=True, bins=np.logspace(0, 4, 20), remove_outliers=True)
+    assert np.allclose(y_fake, y_fake_new)
+    # Remove outliers
+    outlier_selection = ~(y_real > np.quantile(y_real, 0.99))
+    x = x[outlier_selection]
+    y_fake = y_fake[outlier_selection]
+    y_ip = y_ip[outlier_selection]
+    y_real = y_real[outlier_selection]
+
+    fig, ax = plt.subplots(1, 1, figsize=(8, 7))
+    ax.plot(x, np.log(1+y_fake), label=f'cGAN: 1-WD: {wass_pixel_gt_gen:.4f}', c=gen_gt_color, alpha=0.7)
+    ax.plot(x, np.log(1+y_real), label='F4 sim', c='black', alpha=0.7)
+    ax.plot(x, np.log(1+y_ip), label='GR sim', c=ip_gt_color, alpha=0.7)
+    ax.tick_params(axis='x', labelsize=ticklabelsize)
+    ax.tick_params(axis='y', labelsize=ticklabelsize)
+    ax.legend(fontsize=ticklabelsize)
+    #ax.set_xscale('log'); #ax.set_yscale('log')
+    ax.set_ylabel('Pixel count', fontsize=axeslabelsize)
+    ax.set_xlabel('Pixel dendity value', fontsize=axeslabelsize)
+    plt.savefig('mass_hist_f4_den.png', bbox_inches='tight', dpi=250)
+
+    ################################ Performing two-sample ks test on pixel distribution ################################
+    print("Between generated and ground-truth f(R)")
+    print(ks_2samp(gens.flatten(), gts.flatten()))
+    #####################################################################################################################
+
+    return
 
     # 4. MS-SSIM
     # Some motivation for the idea: https://dl.acm.org/doi/pdf/10.5555/3305890.3305954
