@@ -1,0 +1,309 @@
+====
+Starting job 6573664 at Sat Nov 11 06:20:23 GMT 2023 for user dc-gond1.
+Running on nodes: mad04
+====
+nvcc: NVIDIA (R) Cuda compiler driver
+Copyright (c) 2005-2023 NVIDIA Corporation
+Built on Tue_Feb__7_19:32:13_PST_2023
+Cuda compilation tools, release 12.1, V12.1.66
+Build cuda_12.1.r12.1/compiler.32415258_0
+Sat Nov 11 06:20:23 2023       
++---------------------------------------------------------------------------------------+
+| NVIDIA-SMI 530.30.02              Driver Version: 530.30.02    CUDA Version: 12.1     |
+|-----------------------------------------+----------------------+----------------------+
+| GPU  Name                  Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf            Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                                         |                      |               MIG M. |
+|=========================================+======================+======================|
+|   0  NVIDIA A100-PCIE-40GB           Off| 00000000:37:00.0 Off |                    0 |
+| N/A   68C    P0              244W / 250W|  33664MiB / 40960MiB |    100%      Default |
+|                                         |                      |             Disabled |
++-----------------------------------------+----------------------+----------------------+
+                                                                                         
++---------------------------------------------------------------------------------------+
+| Processes:                                                                            |
+|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |
+|        ID   ID                                                             Usage      |
+|=======================================================================================|
+|    0   N/A  N/A     21441      C   ./gputree_bar_double                       1264MiB |
+|    0   N/A  N/A     21442      C   ./gputree_bar_double                       1264MiB |
+|    0   N/A  N/A     21443      C   ./gputree_bar_double                       1264MiB |
+|    0   N/A  N/A     21444      C   ./gputree_bar_double                       1264MiB |
+|    0   N/A  N/A     21445      C   ./gputree_bar_double                       1264MiB |
+|    0   N/A  N/A     21446      C   ./gputree_bar_double                       1264MiB |
+|    0   N/A  N/A     21447      C   ./gputree_bar_double                       1264MiB |
+|    0   N/A  N/A     21448      C   ./gputree_bar_double                       1264MiB |
+|    0   N/A  N/A     25857      C   python3                                   11780MiB |
+|    0   N/A  N/A    206996      C   python3                                   11768MiB |
++---------------------------------------------------------------------------------------+
+Defaulting to user installation because normal site-packages is not writeable
+Requirement already satisfied: torch>=1.4.0 in /cosma/local/Python/3.8.7-cosma8/lib/python3.8/site-packages (from -r requirements.txt (line 1)) (1.12.1+cu113)
+Requirement already satisfied: torchvision>=0.5.0 in /cosma/local/Python/3.8.7-cosma8/lib/python3.8/site-packages (from -r requirements.txt (line 2)) (0.13.1+cu113)
+Requirement already satisfied: typing-extensions in /cosma/local/Python/3.8.7-cosma8/lib/python3.8/site-packages (from torch>=1.4.0->-r requirements.txt (line 1)) (3.7.4.3)
+Requirement already satisfied: numpy in /cosma/local/Python/3.8.7-cosma8/lib/python3.8/site-packages (from torchvision>=0.5.0->-r requirements.txt (line 2)) (1.19.5)
+Requirement already satisfied: pillow!=8.3.*,>=5.3.0 in /cosma/local/Python/3.8.7-cosma8/lib/python3.8/site-packages (from torchvision>=0.5.0->-r requirements.txt (line 2)) (9.2.0)
+Requirement already satisfied: requests in /cosma/local/Python/3.8.7-cosma8/lib/python3.8/site-packages (from torchvision>=0.5.0->-r requirements.txt (line 2)) (2.25.1)
+Requirement already satisfied: urllib3<1.27,>=1.21.1 in /cosma/local/Python/3.8.7-cosma8/lib/python3.8/site-packages (from requests->torchvision>=0.5.0->-r requirements.txt (line 2)) (1.26.3)
+Requirement already satisfied: chardet<5,>=3.0.2 in /cosma/local/Python/3.8.7-cosma8/lib/python3.8/site-packages (from requests->torchvision>=0.5.0->-r requirements.txt (line 2)) (4.0.0)
+Requirement already satisfied: certifi>=2017.4.17 in /cosma/local/Python/3.8.7-cosma8/lib/python3.8/site-packages (from requests->torchvision>=0.5.0->-r requirements.txt (line 2)) (2020.12.5)
+Requirement already satisfied: idna<3,>=2.5 in /cosma/local/Python/3.8.7-cosma8/lib/python3.8/site-packages (from requests->torchvision>=0.5.0->-r requirements.txt (line 2)) (2.10)
+/cosma5/data/durham/dc-gond1/pix2pix_modified_gravity/pytorch-CycleGAN-and-pix2pix
+4608
+1536
+1536
+Warning: wandb package cannot be found. The option "--use_wandb" will result in error.
+----------------- Options ---------------
+             aspect_ratio: 1.0                           
+               batch_size: 1                             
+          checkpoints_dir: ./checkpoints                 
+                crop_size: 512                           	[default: 256]
+                 dataroot: /cosma5/data/durham/dc-gond1/official_pix2pix_data_F4n1_GR	[default: None]
+             dataset_mode: aligned                       
+                direction: AtoB                          
+          display_winsize: 256                           
+                    epoch: 60                            	[default: latest]
+                     eval: True                          	[default: False]
+                  gpu_ids: 0                             
+                init_gain: 0.02                          
+                init_type: normal                        
+                 input_nc: 1                             	[default: 3]
+                  isTrain: False                         	[default: None]
+                load_iter: 0                             	[default: 0]
+                load_size: 512                           	[default: 256]
+         max_dataset_size: inf                           
+                    model: pix2pix                       	[default: test]
+               n_layers_D: 3                             
+                     name: pix2pix_F4n1_GR_DEN_a1_RESIDUAL_BUT_SCALED_LOGARITHM_TRANSFORM_NORMALIZED_BY_10_Focal_Freq_Loss_and_L1_Patch4_and_NEW_MODIFIED_MODIFIED	[default: experiment_name]
+                      ndf: 64                            
+                     netD: basic                         
+                     netG: unet_512                      	[default: unet_256]
+                      ngf: 128                           	[default: 64]
+               no_dropout: True                          	[default: False]
+                  no_flip: True                          	[default: False]
+                     norm: instance                      	[default: batch]
+                 num_test: 1536                          	[default: 50]
+              num_threads: 2                             	[default: 4]
+                output_nc: 1                             	[default: 3]
+                    phase: test                          
+               preprocess: resize_and_crop               
+              results_dir: test_results                  	[default: ./results/]
+           serial_batches: False                         
+                   suffix:                               
+                use_wandb: False                         
+                  verbose: False                         
+----------------- End -------------------
+dataset [AlignedDataset] was created
+initialize network with normal
+model [Pix2PixModel] was created
+loading the model from ./checkpoints/pix2pix_F4n1_GR_DEN_a1_RESIDUAL_BUT_SCALED_LOGARITHM_TRANSFORM_NORMALIZED_BY_10_Focal_Freq_Loss_and_L1_Patch4_and_NEW_MODIFIED_MODIFIED/60_net_G.pth
+---------- Networks initialized -------------
+[Network G] Total number of parameters : 267.930 M
+-----------------------------------------------
+DataParallel(
+  (module): UnetGenerator(
+    (model): UnetSkipConnectionBlock(
+      (model): Sequential(
+        (0): Conv2d(1, 128, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+        (1): UnetSkipConnectionBlock(
+          (model): Sequential(
+            (0): LeakyReLU(negative_slope=0.2, inplace=True)
+            (1): Conv2d(128, 256, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+            (2): InstanceNorm2d(256, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+            (3): UnetSkipConnectionBlock(
+              (model): Sequential(
+                (0): LeakyReLU(negative_slope=0.2, inplace=True)
+                (1): Conv2d(256, 512, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                (2): InstanceNorm2d(512, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+                (3): UnetSkipConnectionBlock(
+                  (model): Sequential(
+                    (0): LeakyReLU(negative_slope=0.2, inplace=True)
+                    (1): Conv2d(512, 1024, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                    (2): InstanceNorm2d(1024, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+                    (3): UnetSkipConnectionBlock(
+                      (model): Sequential(
+                        (0): LeakyReLU(negative_slope=0.2, inplace=True)
+                        (1): Conv2d(1024, 1024, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                        (2): InstanceNorm2d(1024, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+                        (3): UnetSkipConnectionBlock(
+                          (model): Sequential(
+                            (0): LeakyReLU(negative_slope=0.2, inplace=True)
+                            (1): Conv2d(1024, 1024, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                            (2): InstanceNorm2d(1024, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+                            (3): UnetSkipConnectionBlock(
+                              (model): Sequential(
+                                (0): LeakyReLU(negative_slope=0.2, inplace=True)
+                                (1): Conv2d(1024, 1024, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                                (2): InstanceNorm2d(1024, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+                                (3): UnetSkipConnectionBlock(
+                                  (model): Sequential(
+                                    (0): LeakyReLU(negative_slope=0.2, inplace=True)
+                                    (1): Conv2d(1024, 1024, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                                    (2): InstanceNorm2d(1024, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+                                    (3): UnetSkipConnectionBlock(
+                                      (model): Sequential(
+                                        (0): LeakyReLU(negative_slope=0.2, inplace=True)
+                                        (1): Conv2d(1024, 1024, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                                        (2): ReLU(inplace=True)
+                                        (3): ConvTranspose2d(1024, 1024, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                                        (4): InstanceNorm2d(1024, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+                                      )
+                                    )
+                                    (4): ReLU(inplace=True)
+                                    (5): ConvTranspose2d(2048, 1024, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                                    (6): InstanceNorm2d(1024, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+                                  )
+                                )
+                                (4): ReLU(inplace=True)
+                                (5): ConvTranspose2d(2048, 1024, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                                (6): InstanceNorm2d(1024, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+                              )
+                            )
+                            (4): ReLU(inplace=True)
+                            (5): ConvTranspose2d(2048, 1024, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                            (6): InstanceNorm2d(1024, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+                          )
+                        )
+                        (4): ReLU(inplace=True)
+                        (5): ConvTranspose2d(2048, 1024, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                        (6): InstanceNorm2d(1024, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+                      )
+                    )
+                    (4): ReLU(inplace=True)
+                    (5): ConvTranspose2d(2048, 512, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                    (6): InstanceNorm2d(512, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+                  )
+                )
+                (4): ReLU(inplace=True)
+                (5): ConvTranspose2d(1024, 256, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                (6): InstanceNorm2d(256, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              )
+            )
+            (4): ReLU(inplace=True)
+            (5): ConvTranspose2d(512, 128, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+            (6): InstanceNorm2d(128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+          )
+        )
+        (2): ReLU(inplace=True)
+        (3): ConvTranspose2d(256, 1, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+        (4): Tanh()
+      )
+    )
+  )
+)
+Warning: module UnetSkipConnectionBlock is treated as a zero-op.
+Warning: module Tanh is treated as a zero-op.
+Warning: module UnetGenerator is treated as a zero-op.
+Warning: module DataParallel is treated as a zero-op.
+DataParallel(
+  267.93 M, 100.000% Params, 284.66 GMac, 99.989% MACs, 
+  (module): UnetGenerator(
+    267.93 M, 100.000% Params, 284.66 GMac, 99.989% MACs, 
+    (model): UnetSkipConnectionBlock(
+      267.93 M, 100.000% Params, 284.66 GMac, 99.989% MACs, 
+      (model): Sequential(
+        267.93 M, 100.000% Params, 284.66 GMac, 99.989% MACs, 
+        (0): Conv2d(2.18 k, 0.001% Params, 142.61 MMac, 0.050% MACs, 1, 128, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+        (1): UnetSkipConnectionBlock(
+          267.92 M, 99.998% Params, 283.43 GMac, 99.555% MACs, 
+          (model): Sequential(
+            267.92 M, 99.998% Params, 283.43 GMac, 99.555% MACs, 
+            (0): LeakyReLU(0, 0.000% Params, 8.39 MMac, 0.003% MACs, negative_slope=0.2, inplace=True)
+            (1): Conv2d(524.54 k, 0.196% Params, 8.59 GMac, 3.019% MACs, 128, 256, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+            (2): InstanceNorm2d(0, 0.000% Params, 4.19 MMac, 0.001% MACs, 256, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+            (3): UnetSkipConnectionBlock(
+              266.35 M, 99.410% Params, 206.08 GMac, 72.386% MACs, 
+              (model): Sequential(
+                266.35 M, 99.410% Params, 206.08 GMac, 72.386% MACs, 
+                (0): LeakyReLU(0, 0.000% Params, 4.19 MMac, 0.001% MACs, negative_slope=0.2, inplace=True)
+                (1): Conv2d(2.1 M, 0.783% Params, 8.59 GMac, 3.018% MACs, 256, 512, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                (2): InstanceNorm2d(0, 0.000% Params, 2.1 MMac, 0.001% MACs, 512, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+                (3): UnetSkipConnectionBlock(
+                  260.06 M, 97.062% Params, 128.75 GMac, 45.223% MACs, 
+                  (model): Sequential(
+                    260.06 M, 97.062% Params, 128.75 GMac, 45.223% MACs, 
+                    (0): LeakyReLU(0, 0.000% Params, 2.1 MMac, 0.001% MACs, negative_slope=0.2, inplace=True)
+                    (1): Conv2d(8.39 M, 3.131% Params, 8.59 GMac, 3.018% MACs, 512, 1024, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                    (2): InstanceNorm2d(0, 0.000% Params, 1.05 MMac, 0.000% MACs, 1024, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+                    (3): UnetSkipConnectionBlock(
+                      234.89 M, 87.669% Params, 51.43 GMac, 18.064% MACs, 
+                      (model): Sequential(
+                        234.89 M, 87.669% Params, 51.43 GMac, 18.064% MACs, 
+                        (0): LeakyReLU(0, 0.000% Params, 1.05 MMac, 0.000% MACs, negative_slope=0.2, inplace=True)
+                        (1): Conv2d(16.78 M, 6.262% Params, 4.3 GMac, 1.509% MACs, 1024, 1024, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                        (2): InstanceNorm2d(0, 0.000% Params, 262.14 KMac, 0.000% MACs, 1024, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+                        (3): UnetSkipConnectionBlock(
+                          184.56 M, 68.883% Params, 12.77 GMac, 4.485% MACs, 
+                          (model): Sequential(
+                            184.56 M, 68.883% Params, 12.77 GMac, 4.485% MACs, 
+                            (0): LeakyReLU(0, 0.000% Params, 262.14 KMac, 0.000% MACs, negative_slope=0.2, inplace=True)
+                            (1): Conv2d(16.78 M, 6.262% Params, 1.07 GMac, 0.377% MACs, 1024, 1024, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                            (2): InstanceNorm2d(0, 0.000% Params, 65.54 KMac, 0.000% MACs, 1024, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+                            (3): UnetSkipConnectionBlock(
+                              134.22 M, 50.097% Params, 3.1 GMac, 1.090% MACs, 
+                              (model): Sequential(
+                                134.22 M, 50.097% Params, 3.1 GMac, 1.090% MACs, 
+                                (0): LeakyReLU(0, 0.000% Params, 65.54 KMac, 0.000% MACs, negative_slope=0.2, inplace=True)
+                                (1): Conv2d(16.78 M, 6.262% Params, 268.45 MMac, 0.094% MACs, 1024, 1024, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                                (2): InstanceNorm2d(0, 0.000% Params, 16.38 KMac, 0.000% MACs, 1024, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+                                (3): UnetSkipConnectionBlock(
+                                  83.89 M, 31.310% Params, 687.95 MMac, 0.242% MACs, 
+                                  (model): Sequential(
+                                    83.89 M, 31.310% Params, 687.95 MMac, 0.242% MACs, 
+                                    (0): LeakyReLU(0, 0.000% Params, 16.38 KMac, 0.000% MACs, negative_slope=0.2, inplace=True)
+                                    (1): Conv2d(16.78 M, 6.262% Params, 67.11 MMac, 0.024% MACs, 1024, 1024, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                                    (2): InstanceNorm2d(0, 0.000% Params, 4.1 KMac, 0.000% MACs, 1024, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+                                    (3): UnetSkipConnectionBlock(
+                                      33.56 M, 12.524% Params, 83.9 MMac, 0.029% MACs, 
+                                      (model): Sequential(
+                                        33.56 M, 12.524% Params, 83.9 MMac, 0.029% MACs, 
+                                        (0): LeakyReLU(0, 0.000% Params, 4.1 KMac, 0.000% MACs, negative_slope=0.2, inplace=True)
+                                        (1): Conv2d(16.78 M, 6.262% Params, 16.78 MMac, 0.006% MACs, 1024, 1024, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                                        (2): ReLU(0, 0.000% Params, 1.02 KMac, 0.000% MACs, inplace=True)
+                                        (3): ConvTranspose2d(16.78 M, 6.262% Params, 67.11 MMac, 0.024% MACs, 1024, 1024, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                                        (4): InstanceNorm2d(0, 0.000% Params, 4.1 KMac, 0.000% MACs, 1024, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+                                      )
+                                    )
+                                    (4): ReLU(0, 0.000% Params, 8.19 KMac, 0.000% MACs, inplace=True)
+                                    (5): ConvTranspose2d(33.56 M, 12.524% Params, 536.89 MMac, 0.189% MACs, 2048, 1024, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                                    (6): InstanceNorm2d(0, 0.000% Params, 16.38 KMac, 0.000% MACs, 1024, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+                                  )
+                                )
+                                (4): ReLU(0, 0.000% Params, 32.77 KMac, 0.000% MACs, inplace=True)
+                                (5): ConvTranspose2d(33.56 M, 12.524% Params, 2.15 GMac, 0.754% MACs, 2048, 1024, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                                (6): InstanceNorm2d(0, 0.000% Params, 65.54 KMac, 0.000% MACs, 1024, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+                              )
+                            )
+                            (4): ReLU(0, 0.000% Params, 131.07 KMac, 0.000% MACs, inplace=True)
+                            (5): ConvTranspose2d(33.56 M, 12.524% Params, 8.59 GMac, 3.017% MACs, 2048, 1024, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                            (6): InstanceNorm2d(0, 0.000% Params, 262.14 KMac, 0.000% MACs, 1024, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+                          )
+                        )
+                        (4): ReLU(0, 0.000% Params, 524.29 KMac, 0.000% MACs, inplace=True)
+                        (5): ConvTranspose2d(33.56 M, 12.524% Params, 34.36 GMac, 12.069% MACs, 2048, 1024, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                        (6): InstanceNorm2d(0, 0.000% Params, 1.05 MMac, 0.000% MACs, 1024, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+                      )
+                    )
+                    (4): ReLU(0, 0.000% Params, 2.1 MMac, 0.001% MACs, inplace=True)
+                    (5): ConvTranspose2d(16.78 M, 6.262% Params, 68.72 GMac, 24.139% MACs, 2048, 512, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                    (6): InstanceNorm2d(0, 0.000% Params, 2.1 MMac, 0.001% MACs, 512, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+                  )
+                )
+                (4): ReLU(0, 0.000% Params, 4.19 MMac, 0.001% MACs, inplace=True)
+                (5): ConvTranspose2d(4.19 M, 1.566% Params, 68.72 GMac, 24.139% MACs, 1024, 256, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+                (6): InstanceNorm2d(0, 0.000% Params, 4.19 MMac, 0.001% MACs, 256, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              )
+            )
+            (4): ReLU(0, 0.000% Params, 8.39 MMac, 0.003% MACs, inplace=True)
+            (5): ConvTranspose2d(1.05 M, 0.391% Params, 68.73 GMac, 24.141% MACs, 512, 128, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+            (6): InstanceNorm2d(0, 0.000% Params, 8.39 MMac, 0.003% MACs, 128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+          )
+        )
+        (2): ReLU(0, 0.000% Params, 16.78 MMac, 0.006% MACs, inplace=True)
+        (3): ConvTranspose2d(4.1 k, 0.002% Params, 1.07 GMac, 0.377% MACs, 256, 1, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+        (4): Tanh(0, 0.000% Params, 0.0 Mac, 0.000% MACs, )
+      )
+    )
+  )
+)
+Computational complexity:       284.69 GMac
+Number of parameters:           267.93 M

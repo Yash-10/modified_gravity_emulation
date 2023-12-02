@@ -3,7 +3,7 @@ from .base_model import BaseModel
 from . import networks
 
 from focal_frequency_loss import FocalFrequencyLoss as FFL
-from VGGLoss import VGGPerceptualLoss_VGG19, VGGPerceptualLoss_CAMELS
+#from VGGLoss import VGGPerceptualLoss_VGG19, VGGPerceptualLoss_CAMELS
 
 class WeightedL1Loss(torch.nn.Module):
     def __init__(self):
