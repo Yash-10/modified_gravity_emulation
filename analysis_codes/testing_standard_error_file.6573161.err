@@ -1,0 +1,2 @@
+/cosma5/data/durham/dc-gond1/pix2pix_modified_gravity/evaluation_metrics.py:559: RuntimeWarning: divide by zero encountered in log10
+  xmad = np.log10(median_abs_deviation(rth_combined, axis=0))

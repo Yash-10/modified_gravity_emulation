@@ -1,0 +1,4 @@
+
+[notice] A new release of pip available: 22.3 -> 23.3.1
+[notice] To update, run: pip install --upgrade pip
+slurmstepd: error: *** JOB 6573168 ON mad04 CANCELLED AT 2023-11-11T18:46:08 ***
