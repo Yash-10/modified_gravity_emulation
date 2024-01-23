@@ -140,6 +140,9 @@ def chiq_squared_dist_ps(ps, ps_expected, ps_expected_std, num_images):  # See h
     """
     return (1/(num_images - 1)) * np.sum(((ps-ps_expected) ** 2) / (ps_expected_std ** 2))
 
+def ps_metric(ps, ps_expected):
+    return 100 * (ps / ps_expected - 1)
+
 #assert np.allclose(chiq_squared_dist_ps(np.ones(10), np.ones(10), np.zeros(10), 100), 0.0)
 
 # Wasserstein distance.
@@ -609,26 +612,26 @@ def driver(gens, ips, gts, vel_field=False, name=None, val_or_test=0,epoch_num=N
     # We check distances at two different regimes: linear/quasi-linear and non-linear. Any scale, k, greater than 10 * (2*pi/L_box) is considered non-linear. It's just a rough estimate taken from https://iopscience.iop.org/article/10.1088/0004-637X/724/2/878: "For simulations with Lbox < 200 h−1 Mpc, nonlinearity has set in at k ≳ 10 × 2π/Lbox".
     print("1.....(k < 0.5)")
     inds1 = (k <= 0.5)
-    chisquare_ip_gt_median = chiq_squared_dist_ps(ps_ip_median[inds1], ps_gt_median[inds1], ps_gt_iqr[inds1], num_images)
-    chisquare_gen_gt_median = chiq_squared_dist_ps(ps_gen_median[inds1], ps_gt_median[inds1], ps_gt_iqr[inds1], num_images)
-    print(f'Chi-squared distance between averaged power spectra:\n\tbetween ground-truth f(R) and input GR: {chisquare_ip_gt_median}\n\tbetween ground-truth f(R) and generated f(R): {chisquare_gen_gt_median}')
+    chisquare_ip_gt_median = ps_metric(ps_ip_median[inds1], ps_gt_median[inds1]).mean()
+    chisquare_gen_gt_median = ps_metric(ps_gen_median[inds1], ps_gt_median[inds1]).mean()
+    print(f'Distance between averaged power spectra:\n\tbetween ground-truth f(R) and input GR: {chisquare_ip_gt_median}\n\tbetween ground-truth f(R) and generated f(R): {chisquare_gen_gt_median}')
     print("2..... (k > 0.5)")
     inds2 = (k > 0.5)
-    chisquare_ip_gt_median = chiq_squared_dist_ps(ps_ip_median[inds2], ps_gt_median[inds2], ps_gt_iqr[inds2], num_images)
-    chisquare_gen_gt_median = chiq_squared_dist_ps(ps_gen_median[inds2], ps_gt_median[inds2], ps_gt_iqr[inds2], num_images)
-    print(f'Chi-squared distance between averaged power spectra:\n\tbetween ground-truth f(R) and input GR: {chisquare_ip_gt_median}\n\tbetween ground-truth f(R) and generated f(R): {chisquare_gen_gt_median}')
+    chisquare_ip_gt_median = ps_metric(ps_ip_median[inds2], ps_gt_median[inds2]).mean()
+    chisquare_gen_gt_median = ps_metric(ps_gen_median[inds2], ps_gt_median[inds2]).mean()
+    print(f'Distance between averaged power spectra:\n\tbetween ground-truth f(R) and input GR: {chisquare_ip_gt_median}\n\tbetween ground-truth f(R) and generated f(R): {chisquare_gen_gt_median}')
 
     # Print chi-squared distance between averaged power spectra.
     print("Mean power spectrum...")
     print("1.....(k <= 0.5)")
-    chisquare_ip_gt = chiq_squared_dist_ps(ps_ip[inds1], ps_gt[inds1], ps_gt_std[inds1], num_images)
-    chisquare_gen_gt = chiq_squared_dist_ps(ps_gen[inds1], ps_gt[inds1], ps_gt_std[inds1], num_images)
-    print(f'Chi-squared distance between averaged power spectra:\n\tbetween ground-truth f(R) and input GR: {chisquare_ip_gt}\n\tbetween ground-truth f(R) and generated f(R): {chisquare_gen_gt}')
+    chisquare_ip_gt = ps_metric(ps_ip[inds1], ps_gt[inds1]).mean()
+    chisquare_gen_gt = ps_metric(ps_gen[inds1], ps_gt[inds1]).mean()
+    print(f'Distance between averaged power spectra:\n\tbetween ground-truth f(R) and input GR: {chisquare_ip_gt}\n\tbetween ground-truth f(R) and generated f(R): {chisquare_gen_gt}')
 
     print("2.....(k > 0.5)")
-    chisquare_ip_gt = chiq_squared_dist_ps(ps_ip[inds2], ps_gt[inds2], ps_gt_std[inds2], num_images)
-    chisquare_gen_gt = chiq_squared_dist_ps(ps_gen[inds2], ps_gt[inds2], ps_gt_std[inds2], num_images)
-    print(f'Chi-squared distance between averaged power spectra:\n\tbetween ground-truth f(R) and input GR: {chisquare_ip_gt}\n\tbetween ground-truth f(R) and generated f(R): {chisquare_gen_gt}')
+    chisquare_ip_gt = ps_metric(ps_ip[inds2], ps_gt[inds2]).mean()
+    chisquare_gen_gt = ps_metric(ps_gen[inds2], ps_gt[inds2]).mean()
+    print(f'Distance between averaged power spectra:\n\tbetween ground-truth f(R) and input GR: {chisquare_ip_gt}\n\tbetween ground-truth f(R) and generated f(R): {chisquare_gen_gt}')
 
     # Print standard deviation of averaged power spectrum (i.e., scatter).
     #chisquare_ip_gt_mad = chiq_squared_dist_ps(ps_ip_mad, ps_gt_mad)
@@ -639,8 +642,8 @@ def driver(gens, ips, gts, vel_field=False, name=None, val_or_test=0,epoch_num=N
         fig, ax = plt.subplots(2, 1, figsize=(9, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
         fig.subplots_adjust(hspace=0)
 
-        ax[0].loglog(k, ps_gen_median, c=gen_gt_color, label=fr'cGAN: $\chi^2 = {int(chisquare_gen_gt_median)}$')
-        ax[0].loglog(k, ps_ip_median, c=ip_gt_color, label=fr'GR sim: $\chi^2 = {int(chisquare_ip_gt_median)}$')
+        ax[0].loglog(k, ps_gen_median, c=gen_gt_color, label=fr'cGAN: Dist = {chisquare_gen_gt_median:.2f}')
+        ax[0].loglog(k, ps_ip_median, c=ip_gt_color, label=fr'GR sim: Dist = {chisquare_ip_gt_median:.2f}')
         ax[0].loglog(k, ps_gt_median, c='black', label='f(R) sim')
         ax[0].legend()
         ax[0].set_title('Median power spectrum', fontsize=titlesize)
@@ -679,8 +682,8 @@ def driver(gens, ips, gts, vel_field=False, name=None, val_or_test=0,epoch_num=N
         fig, ax = plt.subplots(2, 1, figsize=(9, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
         fig.subplots_adjust(hspace=0)
 
-        ax[0].loglog(k, ps_gen, c=gen_gt_color, label=fr'cGAN: $\chi^2 = {int(chisquare_gen_gt)}$')
-        ax[0].loglog(k, ps_ip, c=ip_gt_color, label=fr'GR sim: $\chi^2 = {int(chisquare_ip_gt)}$')
+        ax[0].loglog(k, ps_gen, c=gen_gt_color, label=fr'cGAN: Dist = {chisquare_gen_gt:.2f}')
+        ax[0].loglog(k, ps_ip, c=ip_gt_color, label=fr'GR sim: Dist = {chisquare_ip_gt:.2f}')
         ax[0].loglog(k, ps_gt, c='black', label='f(R) sim')
         ax[0].legend()
         ax[0].set_title('Mean power spectrum', fontsize=titlesize)
@@ -787,18 +790,18 @@ def driver(gens, ips, gts, vel_field=False, name=None, val_or_test=0,epoch_num=N
 
     # 2. CUMULANTS
     
-    gens_cumulant_x, gens_cumulant_y, _, gens_cumulant_y_std, gens_cumulant_y_median, gens_cumulant_y_iqr, _, _ = cumulant_overall(gens, n=2)
-    ips_cumulant_x, ips_cumulant_y, _, ips_cumulant_y_std, ips_cumulant_y_median, ips_cumulant_y_iqr, _, _ = cumulant_overall(ips, n=2)
+    gens_cumulant_x, gens_cumulant_y, _, gens_cumulant_y_std, gens_cumulant_y_median, gens_cumulant_y_iqr, gens_cumulant_x_median, _ = cumulant_overall(gens, n=2)
+    ips_cumulant_x, ips_cumulant_y, _, ips_cumulant_y_std, ips_cumulant_y_median, ips_cumulant_y_iqr, ips_cumulant_x_median, _ = cumulant_overall(ips, n=2)
     gts_cumulant_x, gts_cumulant_y, _, gts_cumulant_y_std, gts_cumulant_y_median, gts_cumulant_y_iqr, gts_cumulant_x_median, gts_cumulant_x_iqr = cumulant_overall(gts, n=2)
 
-    print("Chi-squared distance for cumulants (n = 2).....")
-    chisquare_ip_gt_cumulant = chiq_squared_dist_ps(ips_cumulant_y, gts_cumulant_y, gts_cumulant_y_std, num_images)
-    chisquare_gen_gt_cumulant = chiq_squared_dist_ps(gens_cumulant_y, gts_cumulant_y, gts_cumulant_y_std, num_images)
-    chisquare_ip_gt_cumulant_median = chiq_squared_dist_ps(ips_cumulant_y_median, gts_cumulant_y_median, gts_cumulant_y_iqr, num_images)
-    chisquare_gen_gt_cumulant_median = chiq_squared_dist_ps(gens_cumulant_y_median, gts_cumulant_y_median, gts_cumulant_y_iqr, num_images)
+    print("Distance for cumulants (n = 2).....")
+    chisquare_ip_gt_cumulant = ps_metric(10**ips_cumulant_y, 10**gts_cumulant_y).mean()
+    chisquare_gen_gt_cumulant = ps_metric(10**gens_cumulant_y, 10**gts_cumulant_y).mean()
+    chisquare_ip_gt_cumulant_median = ps_metric(10**ips_cumulant_y_median, 10**gts_cumulant_y_median).mean()
+    chisquare_gen_gt_cumulant_median = ps_metric(10**gens_cumulant_y_median, 10**gts_cumulant_y_median).mean()
 
-    print(f'Chi-squared distance between mean cumulants:\n\tbetween ground-truth f(R) and input GR: {chisquare_ip_gt_cumulant}\n\tbetween ground-truth f(R) and generated f(R): {chisquare_gen_gt_cumulant}')
-    print(f'Chi-squared distance between median cumulants:\n\tbetween ground-truth f(R) and input GR: {chisquare_ip_gt_cumulant_median}\n\tbetween ground-truth f(R) and generated f(R): {chisquare_gen_gt_cumulant_median}')
+    print(f'Distance between mean cumulants:\n\tbetween ground-truth f(R) and input GR: {chisquare_ip_gt_cumulant}\n\tbetween ground-truth f(R) and generated f(R): {chisquare_gen_gt_cumulant}')
+    print(f'Distance between median cumulants:\n\tbetween ground-truth f(R) and input GR: {chisquare_ip_gt_cumulant_median}\n\tbetween ground-truth f(R) and generated f(R): {chisquare_gen_gt_cumulant_median}')
 
     if save:
         np.save(f'FIGURES/{field_name}/cumulant2_y_gen_mean_{name}_{epoch_num}epoch_{field_name}_{val_or_test}.npy', gens_cumulant_y)
@@ -816,18 +819,18 @@ def driver(gens, ips, gts, vel_field=False, name=None, val_or_test=0,epoch_num=N
         np.save(f'FIGURES/{field_name}/cumulant2_x_gt_{name}_{epoch_num}epoch_{field_name}_{val_or_test}.npy', gts_cumulant_x)
         np.save(f'FIGURES/{field_name}/cumulant2_x_gt_median_{name}_{epoch_num}epoch_{field_name}_{val_or_test}.npy', gts_cumulant_x_median)
 
-    gens_cumulant_x3, gens_cumulant_y3, _, gens_cumulant_y_std3, gens_cumulant_y_median3, gens_cumulant_y_iqr3, _, _ = cumulant_overall(gens, n=3)
-    ips_cumulant_x3, ips_cumulant_y3, _, ips_cumulant_y_std3, ips_cumulant_y_median3, ips_cumulant_y_iqr3, _, _ = cumulant_overall(ips, n=3)
+    gens_cumulant_x3, gens_cumulant_y3, _, gens_cumulant_y_std3, gens_cumulant_y_median3, gens_cumulant_y_iqr3, gens_cumulant_x_median3, _ = cumulant_overall(gens, n=3)
+    ips_cumulant_x3, ips_cumulant_y3, _, ips_cumulant_y_std3, ips_cumulant_y_median3, ips_cumulant_y_iqr3, ips_cumulant_x_median3, _ = cumulant_overall(ips, n=3)
     gts_cumulant_x3, gts_cumulant_y3, _, gts_cumulant_y_std3, gts_cumulant_y_median3, gts_cumulant_y_iqr3, gts_cumulant_x_median3, gts_cumulant_x_iqr3 = cumulant_overall(gts, n=3)
 
-    print("Chi-squared distance for cumulants (n = 3).....")
-    chisquare_ip_gt_cumulant = chiq_squared_dist_ps(ips_cumulant_y3, gts_cumulant_y3, gts_cumulant_y_std3, num_images)
-    chisquare_gen_gt_cumulant = chiq_squared_dist_ps(gens_cumulant_y3, gts_cumulant_y3, gts_cumulant_y_std3, num_images)
-    chisquare_ip_gt_cumulant_median = chiq_squared_dist_ps(ips_cumulant_y_median3, gts_cumulant_y_median3, gts_cumulant_y_iqr3, num_images)
-    chisquare_gen_gt_cumulant_median = chiq_squared_dist_ps(gens_cumulant_y_median3, gts_cumulant_y_median3, gts_cumulant_y_iqr3, num_images)
+    print("Distance for cumulants (n = 3).....")
+    chisquare_ip_gt_cumulant = ps_metric(10**ips_cumulant_y3, 10**gts_cumulant_y3).mean()
+    chisquare_gen_gt_cumulant = ps_metric(10**gens_cumulant_y3, 10**gts_cumulant_y3).mean()
+    chisquare_ip_gt_cumulant_median = ps_metric(10**ips_cumulant_y_median3, 10**gts_cumulant_y_median3).mean()
+    chisquare_gen_gt_cumulant_median = ps_metric(10**gens_cumulant_y_median3, 10**gts_cumulant_y_median3).mean()
 
-    print(f'Chi-squared distance between mean cumulants:\n\tbetween ground-truth f(R) and input GR: {chisquare_ip_gt_cumulant}\n\tbetween ground-truth f(R) and generated f(R): {chisquare_gen_gt_cumulant}')
-    print(f'Chi-squared distance between median cumulants:\n\tbetween ground-truth f(R) and input GR: {chisquare_ip_gt_cumulant_median}\n\tbetween ground-truth f(R) and generated f(R): {chisquare_gen_gt_cumulant_median}')
+    print(f'Distance between mean cumulants:\n\tbetween ground-truth f(R) and input GR: {chisquare_ip_gt_cumulant}\n\tbetween ground-truth f(R) and generated f(R): {chisquare_gen_gt_cumulant}')
+    print(f'Distance between median cumulants:\n\tbetween ground-truth f(R) and input GR: {chisquare_ip_gt_cumulant_median}\n\tbetween ground-truth f(R) and generated f(R): {chisquare_gen_gt_cumulant_median}')
 
     if save:
         np.save(f'FIGURES/{field_name}/cumulant3_y_gen_mean_{name}_{epoch_num}epoch_{field_name}_{val_or_test}.npy', gens_cumulant_y3)
@@ -845,18 +848,18 @@ def driver(gens, ips, gts, vel_field=False, name=None, val_or_test=0,epoch_num=N
         np.save(f'FIGURES/{field_name}/cumulant3_x_gt_{name}_{epoch_num}epoch_{field_name}_{val_or_test}.npy', gts_cumulant_x3)
         np.save(f'FIGURES/{field_name}/cumulant3_x_gt_median_{name}_{epoch_num}epoch_{field_name}_{val_or_test}.npy', gts_cumulant_x_median3)
 
-    gens_cumulant_x4, gens_cumulant_y4, _, gens_cumulant_y_std4, gens_cumulant_y_median4, gens_cumulant_y_iqr4, _, _ = cumulant_overall(gens, n=4)
-    ips_cumulant_x4, ips_cumulant_y4, _, ips_cumulant_y_std4, ips_cumulant_y_median4, ips_cumulant_y_iqr4, _, _ = cumulant_overall(ips, n=4)
+    gens_cumulant_x4, gens_cumulant_y4, _, gens_cumulant_y_std4, gens_cumulant_y_median4, gens_cumulant_y_iqr4, gens_cumulant_x_median4, _ = cumulant_overall(gens, n=4)
+    ips_cumulant_x4, ips_cumulant_y4, _, ips_cumulant_y_std4, ips_cumulant_y_median4, ips_cumulant_y_iqr4, ips_cumulant_x_median4, _ = cumulant_overall(ips, n=4)
     gts_cumulant_x4, gts_cumulant_y4, _, gts_cumulant_y_std4, gts_cumulant_y_median4, gts_cumulant_y_iqr4, gts_cumulant_x_median4, gts_cumulant_x_iqr4 = cumulant_overall(gts, n=4)
 
-    print("Chi-squared distance for cumulants (n = 4).....")
-    chisquare_ip_gt_cumulant = chiq_squared_dist_ps(ips_cumulant_y4, gts_cumulant_y4, gts_cumulant_y_std4, num_images)
-    chisquare_gen_gt_cumulant = chiq_squared_dist_ps(gens_cumulant_y4, gts_cumulant_y4, gts_cumulant_y_std4, num_images)
-    chisquare_ip_gt_cumulant_median = chiq_squared_dist_ps(ips_cumulant_y_median4, gts_cumulant_y_median4, gts_cumulant_y_iqr4, num_images)
-    chisquare_gen_gt_cumulant_median = chiq_squared_dist_ps(gens_cumulant_y_median4, gts_cumulant_y_median4, gts_cumulant_y_iqr4, num_images)
+    print("Distance for cumulants (n = 4).....")
+    chisquare_ip_gt_cumulant = ps_metric(10**ips_cumulant_y4, 10**gts_cumulant_y4).mean()
+    chisquare_gen_gt_cumulant = ps_metric(10**gens_cumulant_y4, 10**gts_cumulant_y4).mean()
+    chisquare_ip_gt_cumulant_median = ps_metric(10**ips_cumulant_y_median4, 10**gts_cumulant_y_median4).mean()
+    chisquare_gen_gt_cumulant_median = ps_metric(10**gens_cumulant_y_median4, 10**gts_cumulant_y_median4).mean()
 
-    print(f'Chi-squared distance between mean cumulants:\n\tbetween ground-truth f(R) and input GR: {chisquare_ip_gt_cumulant}\n\tbetween ground-truth f(R) and generated f(R): {chisquare_gen_gt_cumulant}')
-    print(f'Chi-squared distance between median cumulants:\n\tbetween ground-truth f(R) and input GR: {chisquare_ip_gt_cumulant_median}\n\tbetween ground-truth f(R) and generated f(R): {chisquare_gen_gt_cumulant_median}')
+    print(f'Distance between mean cumulants:\n\tbetween ground-truth f(R) and input GR: {chisquare_ip_gt_cumulant}\n\tbetween ground-truth f(R) and generated f(R): {chisquare_gen_gt_cumulant}')
+    print(f'Distance between median cumulants:\n\tbetween ground-truth f(R) and input GR: {chisquare_ip_gt_cumulant_median}\n\tbetween ground-truth f(R) and generated f(R): {chisquare_gen_gt_cumulant_median}')
 
     if save:
         np.save(f'FIGURES/{field_name}/cumulant4_y_gen_mean_{name}_{epoch_num}epoch_{field_name}_{val_or_test}.npy', gens_cumulant_y4)
@@ -890,8 +893,8 @@ def driver(gens, ips, gts, vel_field=False, name=None, val_or_test=0,epoch_num=N
         ax[0].set_ylim(bottom=0.5)
         ax[0].legend()
 
-        ax[1].plot(ips_cumulant_x, ((10**gts_cumulant_y)/(10**ips_cumulant_y)) - 1, label='f(R) sim <-> GR sim')
-        ax[1].plot(gens_cumulant_x, ((10**gens_cumulant_y)/(10**ips_cumulant_y)) - 1, label='cGAN <-> GR sim')
+        ax[1].plot(ips_cumulant_x, ((10**ips_cumulant_y)/(10**gts_cumulant_y)) - 1, label='GR sim <-> f(R) sim')
+        ax[1].plot(gens_cumulant_x, ((10**gens_cumulant_y)/(10**gts_cumulant_y)) - 1, label='cGAN <-> f(R) sim')
         # ax[1].plot(x, (yf4-ygr), label='f4')
         # ax[1].plot(x, (yf5-ygr), label='f5')
         # ax[1].plot(x, (yf6-ygr), label='f6')
@@ -916,8 +919,8 @@ def driver(gens, ips, gts, vel_field=False, name=None, val_or_test=0,epoch_num=N
         ax[0].set_ylim(bottom=0.5)
         ax[0].legend()
 
-        ax[1].plot(ips_cumulant_x3, ((10**gts_cumulant_y3)/(10**ips_cumulant_y3)) - 1, label='f(R) sim <-> GR sim')
-        ax[1].plot(gens_cumulant_x3, ((10**gens_cumulant_y3)/(10**ips_cumulant_y3)) - 1, label='cGAN <-> GR sim')
+        ax[1].plot(ips_cumulant_x3, ((10**ips_cumulant_y3)/(10**gts_cumulant_y3)) - 1, label='GR sim <-> f(R) sim')
+        ax[1].plot(gens_cumulant_x3, ((10**gens_cumulant_y3)/(10**gts_cumulant_y3)) - 1, label='cGAN <-> f(R) sim')
         # ax[1].plot(x, (yf4-ygr), label='f4')
         # ax[1].plot(x, (yf5-ygr), label='f5')
         # ax[1].plot(x, (yf6-ygr), label='f6')
@@ -942,8 +945,8 @@ def driver(gens, ips, gts, vel_field=False, name=None, val_or_test=0,epoch_num=N
         ax[0].set_ylim(bottom=0.5)
         ax[0].legend()
 
-        ax[1].plot(ips_cumulant_x4, ((10**gts_cumulant_y4)/(10**ips_cumulant_y4)) - 1, label='f(R) sim <-> GR sim')
-        ax[1].plot(gens_cumulant_x4, ((10**gens_cumulant_y4)/(10**ips_cumulant_y4)) - 1, label='cGAN <-> GR sim')
+        ax[1].plot(ips_cumulant_x4, ((10**ips_cumulant_y4)/(10**gts_cumulant_y4)) - 1, label='GR sim <-> f(R) sim')
+        ax[1].plot(gens_cumulant_x4, ((10**gens_cumulant_y4)/(10**gts_cumulant_y4)) - 1, label='cGAN <-> f(R) sim')
         # ax[1].plot(x, (yf4-ygr), label='f4')
         # ax[1].plot(x, (yf5-ygr), label='f5')
         # ax[1].plot(x, (yf6-ygr), label='f6')
@@ -954,6 +957,86 @@ def driver(gens, ips, gts, vel_field=False, name=None, val_or_test=0,epoch_num=N
         ax[1].set_ylabel(r'$\Delta Kurtosis$')
 
         plt.savefig(f'FIGURES/{field_name}/cumulant_kurtosis_{name}_mean_{epoch_num}epoch_{val_or_test}.png', bbox_inches='tight', dpi=250)
+
+
+        # Now median cumulant plots.
+        fig, ax = plt.subplots(2, 1, figsize=(9, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
+        fig.subplots_adjust(hspace=0)
+
+        ax[0].plot(ips_cumulant_x_median, ips_cumulant_y_median, label='GR sim')
+        ax[0].plot(gts_cumulant_x_median, gts_cumulant_y_median, label='f(R) sim')
+        ax[0].plot(gens_cumulant_x_median, gens_cumulant_y_median, label='cGAN')
+        ax[0].set_ylabel(r'$\log{\sigma^2}$')
+        ax[0].set_xlabel(r'$\log{R_{th}}$')
+
+        ax[0].set_ylim(bottom=0.5)
+        ax[0].legend()
+
+        ax[1].plot(ips_cumulant_x_median, ((10**ips_cumulant_y_median)/(10**gts_cumulant_y_median)) - 1, label='GR sim <-> f(R) sim')
+        ax[1].plot(gens_cumulant_x_median, ((10**gens_cumulant_y_median)/(10**gts_cumulant_y_median)) - 1, label='cGAN <-> f(R) sim')
+        # ax[1].plot(x, (yf4-ygr), label='f4')
+        # ax[1].plot(x, (yf5-ygr), label='f5')
+        # ax[1].plot(x, (yf6-ygr), label='f6')
+        ax[1].set_ylim([-0.05, 0.5])
+        #ax[1].axhline(y=0, linestyle='--', c='black')
+        ax[1].legend()
+        ax[1].set_xlabel(r'$\log{R_{th}}$')
+        ax[1].set_ylabel(r'$\Delta\sigma^2$')
+
+        plt.savefig(f'FIGURES/{field_name}/cumulant_variance_{name}_median_{epoch_num}epoch_{val_or_test}.png', bbox_inches='tight', dpi=250)
+
+
+        fig, ax = plt.subplots(2, 1, figsize=(9, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
+        fig.subplots_adjust(hspace=0)
+
+        ax[0].plot(ips_cumulant_x_median3, ips_cumulant_y_median3, label='GR sim')
+        ax[0].plot(gts_cumulant_x_median3, gts_cumulant_y_median3, label='f(R) sim')
+        ax[0].plot(gens_cumulant_x_median3, gens_cumulant_y_median3, label='cGAN')
+        ax[0].set_ylabel('Skewness')
+        ax[0].set_xlabel(r'$\log{R_{th}}$')
+
+        ax[0].set_ylim(bottom=0.5)
+        ax[0].legend()
+
+        ax[1].plot(ips_cumulant_x_median3, ((10**ips_cumulant_y_median3)/(10**gts_cumulant_y_median3)) - 1, label='GR sim <-> f(R) sim')
+        ax[1].plot(gens_cumulant_x_median3, ((10**gens_cumulant_y_median3)/(10**gts_cumulant_y_median3)) - 1, label='cGAN <-> f(R) sim')
+        # ax[1].plot(x, (yf4-ygr), label='f4')
+        # ax[1].plot(x, (yf5-ygr), label='f5')
+        # ax[1].plot(x, (yf6-ygr), label='f6')
+        ax[1].set_ylim([-0.05, 0.5])
+        #ax[1].axhline(y=0, linestyle='--', c='black')
+        ax[1].legend()
+        ax[1].set_xlabel(r'$\log{R_{th}}$')
+        ax[1].set_ylabel(r'$\Delta Skewness$')
+
+        plt.savefig(f'FIGURES/{field_name}/cumulant_skewness_{name}_median_{epoch_num}epoch_{val_or_test}.png', bbox_inches='tight', dpi=250)
+
+
+        fig, ax = plt.subplots(2, 1, figsize=(9, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
+        fig.subplots_adjust(hspace=0)
+
+        ax[0].plot(ips_cumulant_x_median4, ips_cumulant_y_median4, label='GR sim')
+        ax[0].plot(gts_cumulant_x_median4, gts_cumulant_y_median4, label='f(R) sim')
+        ax[0].plot(gens_cumulant_x_median4, gens_cumulant_y_median4, label='cGAN')
+        ax[0].set_ylabel('Kurtosis')
+        ax[0].set_xlabel(r'$\log{R_{th}}$')
+
+        ax[0].set_ylim(bottom=0.5)
+        ax[0].legend()
+
+        ax[1].plot(ips_cumulant_x_median4, ((10**ips_cumulant_y_median4)/(10**gts_cumulant_y_median4)) - 1, label='GR sim <-> f(R) sim')
+        ax[1].plot(gens_cumulant_x_median4, ((10**gens_cumulant_y_median4)/(10**gts_cumulant_y_median4)) - 1, label='cGAN <-> f(R) sim')
+        # ax[1].plot(x, (yf4-ygr), label='f4')
+        # ax[1].plot(x, (yf5-ygr), label='f5')
+        # ax[1].plot(x, (yf6-ygr), label='f6')
+        ax[1].set_ylim([-0.05, 0.5])
+        #ax[1].axhline(y=0, linestyle='--', c='black')
+        ax[1].legend()
+        ax[1].set_xlabel(r'$\log{R_{th}}$')
+        ax[1].set_ylabel(r'$\Delta Kurtosis$')
+
+        plt.savefig(f'FIGURES/{field_name}/cumulant_kurtosis_{name}_median_{epoch_num}epoch_{val_or_test}.png', bbox_inches='tight', dpi=250)
+
 
 
     # 3. PIXEL DISTANCE
@@ -980,7 +1063,7 @@ def driver(gens, ips, gts, vel_field=False, name=None, val_or_test=0,epoch_num=N
         ax.tick_params(axis='x', labelsize=ticklabelsize)
         ax.tick_params(axis='y', labelsize=ticklabelsize)
         ax.legend(fontsize=ticklabelsize)
-        #ax.set_xscale('log');
+        ax.set_xscale('log');
         ax.set_yscale('log')
         ax.set_ylabel('Pixel count', fontsize=axeslabelsize)
         ax.set_xlabel('Pixel density value', fontsize=axeslabelsize)
