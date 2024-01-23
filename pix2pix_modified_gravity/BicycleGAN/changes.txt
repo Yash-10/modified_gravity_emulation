@@ -1,0 +1,13 @@
+1. changed all Adam to AdamW [dec 16]
+2. changed lr for D and D2 to be 0.05 times lr for generator [dec 17]
+3. changed gamma from 0.1 to 0.75 in pix2pix_modified_gravity/BicycleGAN/models/networks.py [dec 17]
+4. removed --no_flip in ml_mg_trial_bicycle.sh [dec 19]
+5. In continuation to (4) above, aded `F.hflip(img)` inside the function __flip() in base_dataset.py to handle our PyTorch tensors instead of PIL image.
+6. Disc lr is now 0.5 times generator lr instead of 0.05 as before. I believe disc must be more stronger to guide the generator and encoder. [Jan 5]
+7. Used patch_factor=1 instead of 4 as previously. [Jan 12]
+8. Reverted back to Adam from AdamW since AdamW has by default weight decay which Adam does not.
+9. Using patch_factor=2 [Jan 12/13]
+10. Used the same lr for all: both discs, encoder, and generator. Earlier both discs had 0.5 times the lr of encoder and generator.
+11. Used custom rotation transformation (90/180/270 degrees rotation).
+12. a=10 was used for the best channel+spatial attention before Jan 18. But now, a=4 is used.
+13. Removed custom rotation transformation. [Jan 19]
