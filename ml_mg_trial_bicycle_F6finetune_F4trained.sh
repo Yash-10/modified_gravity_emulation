@@ -33,3 +33,4 @@ python3 train.py --dataset_mode aligned --dataroot /cosma5/data/durham/dc-gond1/
 
 # --netD2 basic_512_multi
 # See https://github.com/junyanz/BicycleGAN/issues/29#issuecomment-402540477
+# FOR THIS SCRIPT TO RUN, NEED TO CHANGE A LINE in the function `load_networks`.
