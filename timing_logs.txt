@@ -1,0 +1,16 @@
+For F4 simulation:
+
+```
+In [6]: l=[]; import numpy as np; import pandas as pd
+   ...: for d in ['Run1', 'Run2', 'Run10', 'Run30', 'Run62']:
+   ...:     print(df['Tot/min'].sum()*32)
+   ...:     df = pd.read_csv(f'{d}/timing.log', delim_whitespace=True, skiprows=1); l.append(df['Tot/min'].sum()*32)
+   ...: print(np.mean(l), np.median(l))
+2681.8688
+1667.6480000000001
+1608.4832000000001
+1610.6848
+1554.3200000000002
+1824.6009600000002 1610.6848
+```
+We use the median value = 1610.6848.
