@@ -39,27 +39,30 @@ from pix2pix_modified_gravity.evaluation_metrics import (
 #    y_clipped = np.clip(y, simple_min, simple_max) / scale
 #    return (shift + 1) * (y_clipped + 1) / (1 - y_clipped)
 
-FIELD_TYPE = 'den'
+FIELD_TYPE = 'veldiv'
 import os
 import subprocess
 import numpy as np
 import glob
-
 from test_utils import hvstack, grouper
 
-name = 'CHECK_F6_256X256'
-dataroot = '/cosma5/data/durham/dc-gond1/official_pix2pix_data_F6n1_GR_256X256'
-
+name = 'CHECK_F4_veldiv_256X256_scale_minus900_400'
+dataroot = '/cosma5/data/durham/dc-gond1/official_pix2pix_data_velDiv_F6n1_GR_256X256'
 #for epoch_num in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200]:
-for epoch_num in [65,70]:
-    print(f"------------------------- {epoch_num} MODEL CHECK ----------------------------")
+#for epoch_num in [20]:
+#for epoch_num in [10,20,30,40,50,60,70,80,90,100]:
+for epoch_num in [25]:
     print('Removing old images from test folder...')
     for _f in glob.glob('/cosma5/data/durham/dc-gond1/pix2pix_modified_gravity/BicycleGAN/test_results/test/images/*.npy'):
-        os.remove(_f) 
+        os.remove(_f)
+
+    print(f"------------------------- {epoch_num} MODEL CHECK ----------------------------")
 
     #subprocess.run(['cp', f'/cosma5/data/durham/dc-gond1/pix2pix_modified_gravity/pytorch-CycleGAN-and-pix2pix/checkpoints/{name}/{epoch_num}_net_G.pth', f'/cosma5/data/durham/dc-gond1/pix2pix_modified_gravity/pytorch-CycleGAN-and-pix2pix/checkpoints/{name}/latest_net_G.pth'])
 
-    subprocess.run(['python3', 'test.py', '--dataroot', f'{dataroot}', '--name', f'{name}', '--model', 'bicycle_gan', '--direction', 'AtoB', '--batch_size', '1', '--input_nc', '1', '--output_nc', '1', '--num_threads=2', '--norm', 'instance', '--load_size', '256', '--crop_size', '256', '--no_flip', '--eval', '--phase', 'test', '--num_test', '500', '--results_dir', 'test_results', '--netG', 'unet_256', '--ndf', '128', '--ngf', '128', '--dataset_mode', 'aligned', '--epoch', f'{epoch_num}', '--netE', 'resnet_256', '--preprocess', 'none', '--nef', '128', '--nz', '128', '--where_add', 'all'])
+    #subprocess.run(['python3', 'test.py', '--dataroot', '/cosma5/data/durham/dc-gond1/official_pix2pix_data_F4n1_GR', '--name', f'{name}', '--model', 'bicycle_gan', '--direction', 'AtoB', '--batch_size', '1', '--input_nc', '1', '--output_nc', '1', '--num_threads=2', '--norm', 'instance', '--load_size', '512', '--crop_size', '512', '--no_flip', '--eval', '--phase', 'val', '--num_test', '120', '--results_dir', 'val_results', '--netG', 'unet_512', '--ndf', '64', '--ngf', '128', '--dataset_mode', 'aligned', '--epoch', f'{epoch_num}', '--gpu_ids', '-1', '--netE', 'conv_512', '--preprocess', 'none'])    
+
+    subprocess.run(['python3', 'test_latent_interpolate.py', '--dataroot', f'{dataroot}', '--name', f'{name}', '--model', 'bicycle_gan', '--direction', 'AtoB', '--batch_size', '1', '--input_nc', '1', '--output_nc', '1', '--num_threads=2', '--norm', 'instance', '--load_size', '256', '--crop_size', '256', '--no_flip', '--eval', '--phase', 'test', '--num_test', '500', '--results_dir', 'test_results', '--netG', 'unet_256', '--ndf', '128', '--ngf', '128', '--dataset_mode', 'aligned', '--epoch', f'{epoch_num}', '--netE', 'resnet_256', '--preprocess', 'none', '--nef', '128', '--nz', '128', '--where_add', 'all'])
 
     print('Removing random_sample images from test folder...')
     for _f in glob.glob('/cosma5/data/durham/dc-gond1/pix2pix_modified_gravity/BicycleGAN/test_results/test/images/Run*_random_sample*.npy'):
@@ -67,34 +70,33 @@ for epoch_num in [65,70]:
 
     result_imgs = sorted(glob.glob(f'/cosma5/data/durham/dc-gond1/pix2pix_modified_gravity/BicycleGAN/test_results/test/images/*.npy'))
     assert len(result_imgs) != 0
-    for i in range(0, len(result_imgs), 3):
+    for i in range(0, len(result_imgs), 4):
         assert "_encoded" in result_imgs[i]
-        assert "_ground truth" in result_imgs[i+1]
-        assert "_input" in result_imgs[i+2]
-        fr = np.load(result_imgs[i+1]).squeeze()
-        gr = np.load(result_imgs[i+2]).squeeze()
+        assert "_encoded_latent_interp_sf" in result_imgs[i+1]
+        assert "_ground truth" in result_imgs[i+2]
+        assert "_input" in result_imgs[i+3]
+        fr = np.load(result_imgs[i+2]).squeeze()
+        gr = np.load(result_imgs[i+3]).squeeze()
         test_curr = np.load(
-            os.path.join(f'{dataroot}/test', f'{result_imgs[i+1].split("/")[-1].split("_ground truth")[0]}.npy')
+                os.path.join(f'{dataroot}/test', f'{result_imgs[i+2].split("/")[-1].split("_ground truth")[0]}.npy')
         )
         orig_gr_test = test_curr[:, :256]
         orig_fr_test = test_curr[:, 256:]
 
-        #gr = np.exp(gr*5)
-        #fr = np.exp(fr*5)*gr
+        #gr = np.exp(gr*10)
+        #fr = np.exp(fr*10)*gr
 
-        #assert np.allclose(gr, orig_gr_test, atol=1e-1)
-        #assert np.allclose(fr, orig_fr_test, atol=1e-1)
-        if not np.allclose(gr, orig_gr_test, atol=1e-1):
-            print("Warning: gr and orig_gr_test do not match!")
-        if not np.allclose(fr, orig_fr_test, atol=1e-1):
-            print("Warning: fr and orig_fr_test do not match!")
+        #if not np.allclose(gr, orig_gr_test, atol=1e-1):
+        #    print("Warning: gr and orig_gr_test do not match!")
+        #if not np.allclose(fr, orig_fr_test, atol=1e-1):
+        #    print("Warning: fr and orig_fr_test do not match!")
 
-    """    
+    """
     for m in grouper(12, result_imgs):
         encoded = hvstack(*[np.load(m[v]) for v in range(0, 12, 3)])
         ground_truth = hvstack(*[np.load(m[v]) for v in range(1, 12, 3)])
         inp = hvstack(*[np.load(m[v]) for v in range(2, 12, 3)])
-
+        
         s = [m[v] for v in range(0, 12, 3)][0]  # Select the first name, which will be of the format: Run?_?_1.npy
         b = s.split('/')[-1].split('_')
         b.pop(2)  # Remove the subdivision mark
@@ -112,18 +114,17 @@ for epoch_num in [65,70]:
         b.pop(2)
         ip_filename = os.path.join('/'.join(s.split('/')[:-1]), '_'.join(b))
         np.save(ip_filename, inp)
+    
 
-
-    print('Removing the 256X256 subdivision images from test folder...')
-    for _f in glob.glob('/cosma5/data/durham/dc-gond1/pix2pix_modified_gravity/BicycleGAN/test_results/test/images/Run*_*_1_*.npy'):
+    print('Removing the 256X256 subdivision images from validation folder...')
+    for _f in glob.glob('/cosma5/data/durham/dc-gond1/pix2pix_modified_gravity/BicycleGAN/val_results/val/images/Run*_*_1_*.npy'):
         os.remove(_f)
-    for _f in glob.glob('/cosma5/data/durham/dc-gond1/pix2pix_modified_gravity/BicycleGAN/test_results/test/images/Run*_*_2_*.npy'):
+    for _f in glob.glob('/cosma5/data/durham/dc-gond1/pix2pix_modified_gravity/BicycleGAN/val_results/val/images/Run*_*_2_*.npy'):
         os.remove(_f)
-    for _f in glob.glob('/cosma5/data/durham/dc-gond1/pix2pix_modified_gravity/BicycleGAN/test_results/test/images/Run*_*_3_*.npy'):
+    for _f in glob.glob('/cosma5/data/durham/dc-gond1/pix2pix_modified_gravity/BicycleGAN/val_results/val/images/Run*_*_3_*.npy'):
         os.remove(_f)
-    for _f in glob.glob('/cosma5/data/durham/dc-gond1/pix2pix_modified_gravity/BicycleGAN/test_results/test/images/Run*_*_4_*.npy'):
+    for _f in glob.glob('/cosma5/data/durham/dc-gond1/pix2pix_modified_gravity/BicycleGAN/val_results/val/images/Run*_*_4_*.npy'):
         os.remove(_f)
-
     """
 
     import glob
@@ -182,22 +183,24 @@ for epoch_num in [65,70]:
     #### Validate on all validation images ####
     results_list = sorted(glob.glob(f'/cosma5/data/durham/dc-gond1/pix2pix_modified_gravity/BicycleGAN/test_results/test/images/*.npy'))
     assert len(results_list) != 0
-    val_gen = np.empty((int(len(results_list)/3), 256, 256))
-    val_ip = np.empty((int(len(results_list)/3), 256, 256))
-    val_gt = np.empty((int(len(results_list)/3), 256, 256))
+    val_gen = np.empty((int(len(results_list)/4), 256, 256))
+    val_ip = np.empty((int(len(results_list)/4), 256, 256))
+    val_gt = np.empty((int(len(results_list)/4), 256, 256))
     counter = 0
-    for i in range(0, len(results_list), 3):
-        assert "_encoded" in results_list[i]
-        assert "_ground truth" in results_list[i+1]
-        assert "_input" in results_list[i+2]
+    for i in range(0, len(results_list), 4):
+        assert "_encoded" in result_imgs[i]
+        assert "_encoded_latent_interp_sf" in result_imgs[i+1]
+        assert "_ground truth" in result_imgs[i+2]
+        assert "_input" in result_imgs[i+3]
 
-        gen = np.load(results_list[i]).squeeze()
-        fr = np.load(results_list[i+1]).squeeze()
-        gr = np.load(results_list[i+2]).squeeze()
+        gen = np.load(results_list[i+1]).squeeze()
+        fr = np.load(results_list[i+2]).squeeze()
+        gr = np.load(results_list[i+3]).squeeze()
+        # TODO: ALSO SAVE ENCODED IMAGES IN A DIFF OR THE SAME FOR LOOP APART FROM ENCODED_LATENT_INTERP -- FOR EASY COMPARISON BETWEEN ENCODED AND ENCODED_LATENT_INTERP
 
-        #gr = np.exp(gr*5)
-        #gen = np.exp(gen*5)*gr
-        #fr = np.exp(fr*5)*gr
+        #gr = np.exp(gr*10)
+        #gen = np.exp(gen*10)*gr
+        #fr = np.exp(fr*10)*gr
 
         #print(gr)
         #print(fr)
@@ -209,10 +212,9 @@ for epoch_num in [65,70]:
 
         counter += 1
 
-    assert counter == int(len(results_list)/3)
+    assert counter == int(len(results_list)/4)
 
-    chisquare_ip_gt_median, chisquare_gen_gt_median, chisquare_ip_gt, chisquare_gen_gt, chisquare_ip_gt_PDF, chisquare_gen_gt_PDF = driver(val_gen, val_ip, val_gt, vel_field=False, name=name, val_or_test=1, epoch_num=epoch_num,field_name='F6_den', save=True)
-
+    chisquare_ip_gt_median, chisquare_gen_gt_median, chisquare_ip_gt, chisquare_gen_gt, chisquare_ip_gt_PDF, chisquare_gen_gt_PDF = driver(val_gen, val_ip, val_gt, vel_field=True, name=name, val_or_test=1, epoch_num=epoch_num,field_name='F6_veldiv_latent_interp', save=True)
 
 print('>> Results')
 print('Median chisq pspec')

@@ -7,9 +7,6 @@
 #SBATCH -p cosma8-shm
 #SBATCH -A durham
 #SBATCH -t 02:00:00
-#SBATCH --exclude=mad04,mad05
-#SBATCH --mail-type=END
-#SBATCH --mail-user=f20190481@goa.bits-pilani.ac.in
 
 module unload python/3.6.5
 module load python/3.8.7-C8
@@ -24,9 +21,9 @@ module load python/3.8.7-C8
 #python3 -u testing_for_den_F4den_validation_Bicycle.py
 #python3 -u testing_for_veldiv_F4den_validation_Bicycle.py
 #python3 -u testing_for_den_F4den_test_Bicycle.py
-python3 -u testing_for_den_F4veldiv_test_Bicycle.py
+#python3 -u testing_for_den_F4veldiv_test_Bicycle.py
 
 #python3 -u testing_for_den_F4den_validation_Bicycle_latent_interp.py
 #python3 -u testing_for_den_F4den_test_Bicycle_latent_interp.py
-#python3 -u testing_for_den_F4veldiv_test_Bicycle_latent_interp.py
+python3 -u testing_for_den_F4veldiv_test_Bicycle_latent_interp.py
 

@@ -16,7 +16,7 @@ opt.serial_batches = True  # no shuffle
 opt2 = Namespace(**vars(opt))
 # CHANGE: Write the name of the dataroot on which you trained the model OR the dataroot on which the model performed well/is expected to perform well.
 opt2.dataroot = '/cosma5/data/durham/dc-gond1/official_pix2pix_data_velDiv_F4n1_GR_256X256'
-scale_factor = 12.0
+scale_factor = 25.0
 
 # create dataset
 dataset = create_dataset(opt)

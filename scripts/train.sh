@@ -9,8 +9,6 @@
 #SBATCH --exclude=mad04,mad05
 #SBATCH -A durham
 #SBATCH -t 48:00:00
-#SBATCH --mail-type=END
-#SBATCH --mail-user=f20190481@goa.bits-pilani.ac.in
 
 #load the modules used to build your program.
 #module purge

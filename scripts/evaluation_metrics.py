@@ -597,10 +597,11 @@ def driver(gens, ips, gts, vel_field=False, name=None, val_or_test=0,epoch_num=N
     ########################  Run evaluation metrics  ########################
     # 1. AVERAGED POWER SPECTRUM, TRANSFER FUNCTION, AND CORRELATION COEFFICIENT
     with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):  # Prevent unnecessary verbose output from printing on screen.
-        k = ps_2d(gens[0], vel_field=vel_field)[0]
-        gen__ = np.vstack([ps_2d(im, vel_field=vel_field)[1][k <= 5] for im in gens])
-        ip__ = np.vstack([ps_2d(im, vel_field=vel_field)[1][k <= 5] for im in ips])
-        gt__ = np.vstack([ps_2d(im, vel_field=vel_field)[1][k <= 5] for im in gts])
+        # Using BoxSize=64 since we use 256x256 crops of the entire 512x512 grid images. So we only look at half the box as a result of that.
+        k = ps_2d(gens[0], vel_field=vel_field, BoxSize=64)[0]
+        gen__ = np.vstack([ps_2d(im, vel_field=vel_field, BoxSize=64)[1][k <= 5] for im in gens])
+        ip__ = np.vstack([ps_2d(im, vel_field=vel_field, BoxSize=64)[1][k <= 5] for im in ips])
+        gt__ = np.vstack([ps_2d(im, vel_field=vel_field, BoxSize=64)[1][k <= 5] for im in gts])
 
         # Select only upto k = 5 since scales smaller than that are not well reproduced by MG-GLAM itself. So using them does not make sense.
         k = k[k <= 5]
@@ -806,7 +807,7 @@ def driver(gens, ips, gts, vel_field=False, name=None, val_or_test=0,epoch_num=N
     #gc.collect()
 
     # 2. CUMULANTS
-    
+
     gens_cumulant_x, gens_cumulant_y, _, gens_cumulant_y_std, gens_cumulant_y_median, gens_cumulant_y_iqr, gens_cumulant_x_median, _ = cumulant_overall(gens, n=2, vel_field=vel_field)
     ips_cumulant_x, ips_cumulant_y, _, ips_cumulant_y_std, ips_cumulant_y_median, ips_cumulant_y_iqr, ips_cumulant_x_median, _ = cumulant_overall(ips, n=2, vel_field=vel_field)
     gts_cumulant_x, gts_cumulant_y, _, gts_cumulant_y_std, gts_cumulant_y_median, gts_cumulant_y_iqr, gts_cumulant_x_median, gts_cumulant_x_iqr = cumulant_overall(gts, n=2, vel_field=vel_field)
