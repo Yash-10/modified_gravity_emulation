@@ -1,10 +1,10 @@
-## Emulation of f(R) modified gravity from $\Lambda$ CDM using conditional GANs
+# Emulation of f(R) modified gravity from $\Lambda$ CDM using conditional GANs
 
 This repository contains code for developing a field-level, neural-network-based emulator that generates density and velocity divergence fields under the f(R) gravity MG model from the corresponding $\Lambda$ CDM simulated fields.
 
 The code here is a modification to the [BicycleGAN](https://junyanz.github.io/BicycleGAN/) approach for multimodal image-to-image translation; the official BicycleGAN codebase is [here](https://github.com/junyanz/BicycleGAN). Our modifications are located [here](https://github.com/Yash-10/modified_gravity_emulation/tree/main/BicycleGAN).
 
-### Motivation
+## Motivation
 
 Testing deviations from the $\Lambda$ CDM cosmological model is a key science target of astronomical surveys. However, the simulations of these alternatives are immensely slow. We use the f(R) gravity model in this study as an example, which is a widely studied modified gravity (MG) theory.
 
@@ -12,15 +12,15 @@ Testing deviations from the $\Lambda$ CDM cosmological model is a key science ta
 
 To alleviate the computational bottleneck imposed by f(R) gravity simulations, we use a GAN conditioned on the outputs of $\Lambda$ CDM simulations that emulate f(R) simulation outputs.
 
-### Scientific details
+## Scientific details
 
 These can be found in our preprint: [arXiv:XXXX.YYYY](TODO)
 
-### Installation
+## Installation
 
 The installation instructions are the same as mentioned in the [original BicycleGAN](https://github.com/junyanz/BicycleGAN?tab=readme-ov-file#installation) repository.
 
-### Usage
+## Usage
 1. Preparing the data
 - Our approach requires aligned pairs of images, one from the $\Lambda$ CDM simulation and the other from the f(R) simulation. The simulation data in this study is obtained from $N$-body simulations of the MG-GLAM code.
 - We have then used [DTFE](https://github.com/MariusCautun/DTFE) to interpolate the particle positions onto a grid. These resulting density fields can be stored in various formats; consult the [DTFE documentation](https://github.com/MariusCautun/DTFE/blob/master/documentation/DTFE_user_guide.pdf) for details; here we save them as `npy.gz` files, which are read in the script `scripts/prepare_data.py`.
