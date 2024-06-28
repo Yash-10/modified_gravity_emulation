@@ -10,7 +10,7 @@ Testing deviations from the $\Lambda$ CDM cosmological model is a key science ta
 
 ![Simulation execution time](https://github.com/Yash-10/modified_gravity_emulation/blob/main/imgs/sim_exec_time.png)
 
-To alleviate the computational bottleneck imposed by f(R) gravity simulations, we use a GAN conditioned on the outputs of $\Lambda$ CDM simulations that emulate f(R) simulation outputs.
+To alleviate the computational bottleneck imposed by f(R) gravity simulations, we use a GAN conditioned on the outputs of $\Lambda$ CDM simulations that emulate f(R) simulation outputs. We focus on the matter density and velocity divergence fields.
 
 ## Scientific details
 
