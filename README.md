@@ -1,4 +1,4 @@
-# Emulation of f(R) modified gravity from $\Lambda$ CDM using conditional GANs
+# Emulation of $f(R)$ modified gravity from $\Lambda$ CDM using conditional GANs
 
 This repository contains code for developing a field-level, neural-network-based emulator that generates density and velocity divergence fields under the f(R) gravity MG model from the corresponding $\Lambda$ CDM simulated fields.
 
