@@ -14,7 +14,7 @@ To alleviate the computational bottleneck imposed by f(R) gravity simulations, w
 
 ## Scientific details
 
-These can be found in our preprint: [arXiv:XXXX.YYYY](TODO)
+Coming soon...
 
 ## Installation
 
