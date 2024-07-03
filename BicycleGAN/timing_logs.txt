@@ -1,0 +1,34 @@
+1. For F4 simulation:
+
+```
+import numpy as np
+import pandas as pd
+times = []
+for d in ['Run1', 'Run2', 'Run10', 'Run30', 'Run62']:
+   df = pd.read_csv(f'{d}/timing.log', delim_whitespace=True, skiprows=1)
+   print(df['Tot/min'].sum()*32)
+   times.append(df['Tot/min'].sum()*32)
+print(np.mean(times), np.median(times))
+
+2681.8688
+1667.6480000000001
+1608.4832000000001
+1610.6848
+1554.3200000000002
+1824.6009600000002 1610.6848
+```
+We use the median value = 1610.6848.
+
+NOTE: The `timing.log` files are output from the MG-GLAM simulations, which outputs the execution time of each
+evolution step in the simulation. This is why the times are summed over in the above code. The time is multiplied by 32
+since 32 threads were used for our MG-GLAM simulations.
+
+
+2. For GAN (emulator):
+
+w/o encoding: 1.616, 1.572, 1.650, 1.646, 1.789, 1.621, 1.660, 1.716, 1.732, 1.691
+w encoding											1.868, 1.888, 1.660, 1.834,	1.762	,1.842, 1.758	, 1.792, 1.699, 1.869
+
+w/o encoding but 512x512 instead of 256x256: 1.880, 1.754, 1.805, 1.878, 1.783, 1.638, 1.87, 1.937, 1.703, 1.752
+
+NOTE: See `BicycleGAN/time_bicyclegan.py` for how these execution times were calculated.
