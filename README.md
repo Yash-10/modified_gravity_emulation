@@ -52,8 +52,7 @@ and similarly for the velocity divergence.
 - The notebook visually compares the attention weights and the scalar field for possible correlations (see the paper for detailed discussion).
 
 ### Execution time
-- The script used to calculate the inference time of the emulator is `BicycleGAN/time_bicyclegan.py`. The script loads the trained generator model and calculates the time required for a forward pass in inference mode using a CPU. `BicycleGAN/timing_logs.txt` contains some logs of the execution time of the simulation and our emulator.
-
+- The script used to calculate the inference time of the emulator is `BicycleGAN/time_bicyclegan.py`. The script loads the trained generator model and calculates the time required for a forward pass in inference mode using a CPU or a GPU. `time_bicyclegan.sh` was used to run all our experiments. `BicycleGAN/timing_GR.log` and `BicycleGAN/timing_F4.log` are examples of the execution time of the GR and F4 simulation (the "Tot/min" column gives the elapsed time for each step in the simulation; the simulation is run for 157 steps corresponding to z = 0).
 
 ## Bugs or issues
 If you find something not working as expected or want to discuss a feature, we would like to know about it. Please feel free to open an issue in the [issue tracker](https://github.com/Yash-10/modified_gravity_emulation/issues) or [send an email](yashgondhalekar567@gmail.com).
