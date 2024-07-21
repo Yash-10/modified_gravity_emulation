@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import torch
 import torchvision.models as models
@@ -83,6 +84,11 @@ real_B = np_array[:,512:]
 real_A = torch.from_numpy(real_A).unsqueeze(0).unsqueeze(0)
 real_B = torch.from_numpy(real_B).unsqueeze(0).unsqueeze(0)
 
+
+bs = 16
+real_A = real_A.repeat(bs, 1,1,1)
+real_B = real_B.repeat(bs, 1,1,1)
+
 encode = False
 vaeLike = True
 netE = E_ResNet(output_nc, nz, nef, n_blocks=5, norm_layer=norm_layer, nl_layer=nl_layer, vaeLike=vaeLike)
@@ -95,21 +101,39 @@ net.eval()
 netE.load_state_dict(torch.load(PATHE))
 netE.eval()
 
+# For GPU exec time measurement, see https://discuss.pytorch.org/t/time-consuming-of-gpu-model/22285
+use_gpu = False
+device = torch.device('cuda:0') if use_gpu else torch.device('cpu')  # get device name: CPU or GPU
 
 #from timeit import default_timer as timer
 #start = timer()
 #net(real_A, z0)
 #end = timer()
 #print(end-start)
-with profile(activities=[ProfilerActivity.CPU], record_shapes=True) as prof:
-    with record_function("model_inference"):
-        if encode:
-            z0, _ = netE(real_B)
-        else:
-            z0 = get_z_random(real_A.size(0), nz)
-        net(real_A, z0)
+#activities = [ProfilerActivity.CPU, ProfilerActivity.CUDA] if use_gpu else [ProfilerActivity.CPU]
 
-print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=-1))
+import time
+#torch.cuda.synchronize()  # Uncomment if using GPU.
+start_time = time.time()
+
+#with profile(activities=activities, record_shapes=True) as prof:
+#with record_function("model_inference"):
+for _ in range(512//bs):
+    if encode:
+        #netE.to(device)  # Uncomment if using GPU.
+        #real_B = real_B.to(device)  # Uncomment if using GPU.
+        z0, _ = netE(real_B)
+    else:
+        #real_A = real_A.to(device)  # Uncomment if using GPU.
+        z0 = get_z_random(real_A.size(0), nz)
+    #net.to(device)  # Uncomment if using GPU.
+    net(real_A, z0)
+
+#torch.cuda.synchronize()  # Uncomment if using GPU.
+end_time = time.time()
+wall_clock_time = end_time - start_time
+print(wall_clock_time)
+#print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=-1))
 
 #profiling_results = prof.key_averages().table(sort_by="self_cpu_time_total", row_limit=-1)
 #total_time = sum(row.self_cpu_time_total for row in prof.key_averages())
